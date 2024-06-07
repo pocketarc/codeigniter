@@ -74,6 +74,76 @@ class CI_Profiler {
 	);
 
 	/**
+	 * Compile benchmarks
+	 *
+	 * @var bool
+	 */
+	protected $_compile_benchmarks;
+
+	/**
+	 * Compile GET data
+	 *
+	 * @var bool
+	 */
+	protected $_compile_get;
+
+	/**
+	 * Compile memory usage
+	 *
+	 * @var bool
+	 */
+	protected $_compile_memory_usage;
+
+	/**
+	 * Compile POST data
+	 *
+	 * @var bool
+	 */
+	protected $_compile_post;
+
+	/**
+	 * Compile URI string
+	 *
+	 * @var bool
+	 */
+	protected $_compile_uri_string;
+
+	/**
+	 * Compile controller info
+	 *
+	 * @var bool
+	 */
+	protected $_compile_controller_info;
+
+	/**
+	 * Compile queries
+	 *
+	 * @var bool
+	 */
+	protected $_compile_queries;
+
+	/**
+	 * Compile HTTP headers
+	 *
+	 * @var bool
+	 */
+	protected $_compile_http_headers;
+
+	/**
+	 * Compile session data
+	 *
+	 * @var bool
+	 */
+	protected $_compile_session_data;
+
+	/**
+	 * Compile config data
+	 *
+	 * @var bool
+	 */
+	protected $_compile_config;
+
+	/**
 	 * Number of queries to show before making the additional queries togglable
 	 *
 	 * @var int
