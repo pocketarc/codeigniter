@@ -501,7 +501,7 @@ if ( ! function_exists('timezones'))
 	 * for various other ones in this library
 	 *
 	 * @param	string	timezone
-	 * @return	string
+	 * @return	string|array
 	 */
 	function timezones($tz = '')
 	{
