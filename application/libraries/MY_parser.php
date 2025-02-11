@@ -24,16 +24,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * - Acceso a datos anidados usando exclusivamente la notación con corchetes.
  * - Nueva etiqueta {foreach(...)} ... {/foreach} para iterar sobre arrays.
  *
- * Ejemplos en template:
- *   Acceso directo: {calculos[total][impuestos][21.00]}
- *   Bucle:
- *     {foreach(calculos[total][impuestos] as key => value)}
- *       IVA del {key}%: {value}€<br>
- *     {/foreach}
+ * Ejemplo de uso en template para un array de frutas:
  *
- *   Llamadas a helpers:
- *     {do_something(limit = 10, offset = 5)}
- *     {recieve_array_items([1,2,3,4])}
+ * <p>Here are some fruits:</p>
+ * <ul>
+ *   {foreach(fruits as color => fruitList)}
+ *     <li>{color} fruits:
+ *       <ul>
+ *         {foreach(fruitList as fruit)}
+ *           <li>{fruit}</li>
+ *         {/foreach}
+ *       </ul>
+ *     </li>
+ *   {/foreach}
+ * </ul>
  *
  * @package     CodeIgniter
  * @subpackage  Libraries
@@ -73,7 +77,7 @@ class MY_Parser extends CI_Parser
     
         $template = $this->_replace_unparsed($template);
         $template = $this->_parse_helpers($template, $data);
-        // Procesa la nueva etiqueta foreach antes de los nested paths
+        // Procesa la nueva etiqueta foreach
         $template = $this->_parse_foreach($template, $data);
         $template = $this->_parse_nested_paths($template, $data);
         $template = $this->_parse_switch($template, TRUE);
@@ -329,72 +333,92 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
-
-	protected function _parse_foreach($template, $data)
-{
-    $template = preg_replace_callback(
-        '/\{foreach\((.*?)\)\}(.*?)\{\/foreach\}/is',
-        function($matches) use ($data) {
-            $expr = trim($matches[1]);
-            // Separamos por " as " (case-insensitive)
-            $parts = preg_split('/\s+as\s+/i', $expr);
-            if(count($parts) != 2) return '';
-            $varPath = trim($parts[0]); // Ejemplo: "fruits" o "invoice[items]"
-            $iteratorPart = trim($parts[1]); // Puede ser "key => value" o "fruit"
+    /**
+     * Nueva función para procesar bloques foreach.
+     *
+     * Soporta la sintaxis:
+     *   {foreach(variable as key => value)} ... {/foreach}
+     * o, de forma simple:
+     *   {foreach(variable as item)} ... {/foreach}
+     *
+     * Para cada elemento del array obtenido de la ruta indicada se crea un contexto
+     * que fusiona (usando array_replace para que las variables de iteración sobrescriban las globales)
+     * el contexto global con los datos de la iteración.
+     *
+     * @param string $template
+     * @param array  $data (contexto global)
+     * @return string
+     */
+    protected function _parse_foreach($template, $data)
+    {
+        return preg_replace_callback(
+            '/\{foreach\((.*?)\)\}(.*?)\{\/foreach\}/is',
+            function($matches) use ($data) {
+                $expr = trim($matches[1]);
+                $parts = preg_split('/\s+as\s+/i', $expr);
+                if (count($parts) != 2) {
+                    return '';
+                }
+                $varPath = trim($parts[0]);
+                $iteratorPart = trim($parts[1]);
     
-            $array = $this->_get_nested_value_from_brackets($varPath, $data);
-            $result = '';
-            if (is_array($array))
-            {
-                // Si el array es simple, lo convertimos a array de arrays con 'key' y 'value'
-                if (!empty($array) && !is_array(current($array)))
-                {
-                    $temp = array();
-                    foreach ($array as $k => $v)
-                    {
-                        $temp[] = array('key' => $k, 'value' => $v);
-                    }
-                    $array = $temp;
-                }
+                // Extrae el array usando la notación con corchetes
+                $array = $this->_get_nested_value_from_brackets($varPath, $data);
+                $result = '';
+                if (is_array($array)) {
+                    // Detecta si el array es asociativo (con claves no numéricas secuenciales)
+                    $is_assoc = (array_keys($array) !== range(0, count($array) - 1));
     
-                // Verifica si el iteratorPart contiene "=>"
-                if (strpos($iteratorPart, '=>') !== false)
-                {
-                    $pair = preg_split('/\s*=>\s*/', $iteratorPart);
-                    if(count($pair) != 2) return '';
-                    $keyName = trim($pair[0]);
-                    $valueName = trim($pair[1]);
-                    foreach($array as $k => $row)
-                    {
-                        $context = array();
-                        $context[$keyName] = $k;
-                        $context[$valueName] = $row;
-                        $tempBlock = $this->_parse($matches[2], $context, true);
-                        $result .= $tempBlock;
+                    $globalContext = $data;
+                    if (strpos($iteratorPart, '=>') !== false) {
+                        $pair = preg_split('/\s*=>\s*/', $iteratorPart);
+                        if (count($pair) != 2) {
+                            return '';
+                        }
+                        $keyName = trim($pair[0]);
+                        $valueName = trim($pair[1]);
+                        foreach ($array as $k => $row) {
+                            // Para arrays numéricos (no asociativos) los elementos son escalares; para asociativos, se preserva el valor tal cual
+                            $context = array_replace($globalContext, array(
+                                $keyName => $k,
+                                $valueName => $row
+                            ));
+                            $parsedBlock = $this->_parse($matches[2], $context, true);
+                            $parsedBlock = $this->_parse_foreach($parsedBlock, $context);
+                            $result .= $parsedBlock;
+                        }
+                    } else {
+                        $varName = $iteratorPart;
+                        foreach ($array as $row) {
+                            $context = array_replace($globalContext, array(
+                                $varName => $row
+                            ));
+                            $parsedBlock = $this->_parse($matches[2], $context, true);
+                            $parsedBlock = $this->_parse_foreach($parsedBlock, $context);
+                            $result .= $parsedBlock;
+                        }
                     }
                 }
-                else
-                {
-                    // Caso en el que se pasa solo una variable, por ejemplo: {foreach(fruits as fruit)}
-                    $varName = $iteratorPart;
-                    foreach($array as $row)
-                    {
-                        $context = array();
-                        $context[$varName] = $row;
-                        $tempBlock = $this->_parse($matches[2], $context, true);
-                        $result .= $tempBlock;
-                    }
-                }
+                return $result;
+            },
+            $template
+        );
+    }
+    
+    protected function _get_nested_value_from_brackets($variable, $data)
+    {
+        preg_match_all('/[a-zA-Z0-9_.]+/', $variable, $matches);
+        $parts = $matches[0];
+        foreach ($parts as $part) {
+            if (is_array($data) && array_key_exists($part, $data)) {
+                $data = $data[$part];
+            } else {
+                return null;
             }
-            return $result;
-        },
-        $template
-    );
-    return $template;
-}
-
-
-
+        }
+        return $data;
+    }
+    
     protected function _parse_helpers($template, $data)
     {
         preg_match_all('#'.$this->l_delim.'(\w+)\(([^{}]*)\)'.$this->r_delim.'#s', $template, $helpers, PREG_SET_ORDER);
@@ -502,9 +526,9 @@ class MY_Parser extends CI_Parser
     
     protected function _parse_nested_paths($template, $data)
     {
-        // Procesa bloques de bucle con notación de corchetes: {calculos[total][impuestos]} ... {/calculos[total][impuestos]}
+        // Procesa bloques de bucle con notación de corchetes: {variable} ... {/variable}
         $template = preg_replace_callback('/\{(\w+(?:\[[^\]]+\])+)\}(.*?)\{\/\1\}/is', function($matches) use ($data) {
-            $tag = $matches[1];   // ej: "calculos[total][impuestos]"
+            $tag = $matches[1];
             $inner = $matches[2];
             $array = $this->_get_nested_value_from_brackets($tag, $data);
             $replacement = '';
@@ -522,7 +546,6 @@ class MY_Parser extends CI_Parser
                 foreach ($array as $row)
                 {
                     $temp = $inner;
-                    // Se reemplazan {key} y {value} aquí. (Recuerda que _replace_unparsed() se modificó para excluir estos tags).
                     $temp = str_replace('{key}', isset($row['key']) ? $row['key'] : '', $temp);
                     $temp = str_replace('{value}', isset($row['value']) ? $row['value'] : '', $temp);
                     $replacement .= $temp;
@@ -544,25 +567,6 @@ class MY_Parser extends CI_Parser
     
         return $template;
     }
-    
-	protected function _get_nested_value_from_brackets($variable, $data)
-	{
-		preg_match_all('/[a-zA-Z0-9_.]+/', $variable, $matches);
-		$parts = $matches[0];
-		foreach ($parts as $part)
-		{
-			if (is_array($data) && array_key_exists($part, $data))
-			{
-				$data = $data[$part];
-			}
-			else
-			{
-				return null;
-			}
-		}
-		return $data;
-	}
-	
     
     protected function _parse_object($key, $val, $template)
     {

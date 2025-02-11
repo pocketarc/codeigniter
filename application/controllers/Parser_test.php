@@ -48,15 +48,41 @@ class Parser_test extends CI_Controller {
 				),
 				'invoiced_at' => date('Y-m-d H:i:s')
 			),
+		);
 
-			//for nested array parsing
+		$data = array(
+			
 			'fruits' => array(
+				'apple', 
+				'strawberry', 
+				'cherry'
+			),
+
+			'fruits_by_color' => array(
 				'red' => array('apple', 'strawberry', 'cherry'),
 				'yellow' => array('banana', 'lemon', 'pineapple'),
 				'green' => array('kiwi', 'lime', 'avocado')
-			)
-			
+			),
 
+			'invoice' => array(
+				'items' => array(
+					0 => array(
+						'product' => 'Product 1',
+						'price' => 100,
+						'tax' => 10
+					),
+					1 => array(
+						'product' => 'Product 2',
+						'price' => 150,
+						'tax' => 15
+					),
+					2 => array (
+						'product' => 'Product 3',
+						'price' => 200,
+						'tax' => 20
+					),
+				)
+			)
 		);
 
 		$template = '
@@ -81,13 +107,7 @@ class Parser_test extends CI_Controller {
 						<th>Tax</th>
 					</tr>
 
-					{foreach(invoice[items] as key => value)}
-						<tr>
-							<td>{value[product]}</td>
-							<td>{value[price]} {currency}</td>
-							<td>{value[tax]} {currency}</td>
-						</tr>
-					{/foreach}
+					
  
 					<tr>
 						<td colspan="2">Subtotal</td>
@@ -106,16 +126,37 @@ class Parser_test extends CI_Controller {
 
 				<p> You can download the invoice <a href="{site_url(download)}">with this helper site_url() parsed link</a></p>
 
-				<p>Here are some fruits:</p>
-				<ul>
+				<hr>
+
+				<p>Esto funciona bien!</p>
+				{foreach(invoice[items] as key => value)}
+					<tr>
+						<td>{value[product]}</td>
+						<td>{value[price]} {currency}</td>
+						<td>{value[tax]} {currency}</td>
+					</tr>
+				{/foreach}
+
+				<p>Esto funciona bien!</p>
+				{foreach(fruits as value)}
+					<li>{value}</li>
+				{/foreach}
+
+				<p>Esto funciona bien!</p>
 				{foreach(fruits as key => value)}
-					<li>{key} fruits:
+					<li>{key} - {value}</li>
+				{/foreach}
+
+				<p>Esto NO funciona bien! solo se muestra la key del foreach superior</p>
+				<ul>
+				{foreach(fruits_by_color as color => fruitList)}
+				<li>{color} fruits:
 					<ul>
-						{foreach(value as fruit)}
+					{foreach(fruitList as fruit)}
 						<li>{fruit}</li>
-						{/foreach}
+					{/foreach}
 					</ul>
-					</li>
+				</li>
 				{/foreach}
 				</ul>
 
@@ -123,7 +164,6 @@ class Parser_test extends CI_Controller {
 			</body>
 			</html>
 		';
-
 
 		$this->parser->parse_string($template, $data);
 	}
