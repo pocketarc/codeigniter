@@ -12,23 +12,22 @@
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-// ------------------------------------------------------------------------
-
 /**
  * Class MY_Parser
  * CodeIgniter Parser Library extension
  *
  * Funcionalidades nuevas:
- * - Parámetros nombrados para helpers (agrupados en un array asociativo).
- * - Conversión de parámetros en notación de array usando corchetes, ej. [1,2,3,4].
- * - Acceso a datos anidados usando exclusivamente la notación con corchetes.
- * - Nueva etiqueta {foreach(...)} ... {/foreach} para iterar sobre arrays.
+ * - Parámetros nombrados para helpers (en array asociativo).
+ * - Conversión de parámetros usando notación con corchetes, ej. [1,2,3,4].
+ * - Acceso a datos anidados usando exclusivamente notación con corchetes.
+ * - Nueva etiqueta {foreach(...)} ... {/foreach} que permite definir nombres dinámicos
+ *   para la clave y el valor.
  *
- * Ejemplo de uso en template para un array de frutas:
+ * Ejemplo de template para un array de frutas por color:
  *
  * <p>Here are some fruits:</p>
  * <ul>
- *   {foreach(fruits as color => fruitList)}
+ *   {foreach(fruits_by_color as color => fruitList)}
  *     <li>{color} fruits:
  *       <ul>
  *         {foreach(fruitList as fruit)}
@@ -42,11 +41,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @package     CodeIgniter
  * @subpackage  Libraries
  * @category    Library
- * @author      Gregory Carrodano
- * @version     20161121 (modificado)
  */
-class MY_Parser extends CI_Parser
-{
+class MY_Parser extends CI_Parser {
+
+    // ---------------------------
+    // Método principal _parse
+    // ---------------------------
     protected function _parse($template, $data, $return = FALSE)
     {
         if ($template === '')
@@ -54,10 +54,14 @@ class MY_Parser extends CI_Parser
             return FALSE;
         }
     
+        // Combina los datos pasados con las variables globales de CI.
         $data = array_merge($data, $this->CI->load->get_vars());
-    
+
         // Procesa primero los bucles tradicionales (for)
         $template = $this->_parse_loops($template, TRUE);
+
+        $template = $this->_parse_foreach($template, $data);
+        
     
         $replace = array();
         foreach ($data as $key => $val)
@@ -75,16 +79,18 @@ class MY_Parser extends CI_Parser
             $template = str_ireplace($from, (!is_null($to) ? $to : '%EMPTY_VAR%'), $template);
         }
     
-        $template = $this->_replace_unparsed($template);
+        // $template = $this->_replace_unparsed($template);
         $template = $this->_parse_helpers($template, $data);
-        // Procesa la nueva etiqueta foreach
-        $template = $this->_parse_foreach($template, $data);
+        // Procesa la etiqueta foreach (con nombres dinámicos permitidos)
         $template = $this->_parse_nested_paths($template, $data);
         $template = $this->_parse_switch($template, TRUE);
         $template = $this->_parse_conditionals($template, TRUE);
         $template = $this->_parse_helpers($template, $data);
-        $template = $this->_remove_unparsed($template);
-    
+        // Remueve placeholders que no estén definidos en el contexto (se pasa el contexto actual)
+        //$template = $this->_remove_unparsed($template, $data);
+        
+        //$template = $this->_parse_foreach($template, $data);
+
         if ($return === FALSE)
         {
             $this->CI->output->append_output($template);
@@ -97,6 +103,9 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
+    // ---------------------------
+    // _parse_conditionals
+    // ---------------------------
     protected function _parse_conditionals($template, $preprocess = FALSE)
     {
         $currency = '&pound;';
@@ -214,6 +223,9 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
+    // ---------------------------
+    // _parse_switch
+    // ---------------------------
     protected function _parse_switch($template, $preprocess = FALSE)
     {
         $currency = '&pound;';
@@ -283,6 +295,9 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
+    // ---------------------------
+    // _parse_loops
+    // ---------------------------
     protected function _parse_loops($template, $preprocess = FALSE)
     {
         if ($preprocess)
@@ -333,22 +348,9 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
-    /**
-     * Nueva función para procesar bloques foreach.
-     *
-     * Soporta la sintaxis:
-     *   {foreach(variable as key => value)} ... {/foreach}
-     * o, de forma simple:
-     *   {foreach(variable as item)} ... {/foreach}
-     *
-     * Para cada elemento del array obtenido de la ruta indicada se crea un contexto
-     * que fusiona (usando array_replace para que las variables de iteración sobrescriban las globales)
-     * el contexto global con los datos de la iteración.
-     *
-     * @param string $template
-     * @param array  $data (contexto global)
-     * @return string
-     */
+    // ---------------------------
+    // _parse_foreach
+    // ---------------------------
     protected function _parse_foreach($template, $data)
     {
         return preg_replace_callback(
@@ -359,16 +361,13 @@ class MY_Parser extends CI_Parser
                 if (count($parts) != 2) {
                     return '';
                 }
-                $varPath = trim($parts[0]);
-                $iteratorPart = trim($parts[1]);
+                $varPath = trim($parts[0]);      // Ejemplo: "fruits_by_color" o "invoice[items]"
+                $iteratorPart = trim($parts[1]); // Ejemplo: "color => fruitList" o "fruit"
     
                 // Extrae el array usando la notación con corchetes
                 $array = $this->_get_nested_value_from_brackets($varPath, $data);
                 $result = '';
                 if (is_array($array)) {
-                    // Detecta si el array es asociativo (con claves no numéricas secuenciales)
-                    $is_assoc = (array_keys($array) !== range(0, count($array) - 1));
-    
                     $globalContext = $data;
                     if (strpos($iteratorPart, '=>') !== false) {
                         $pair = preg_split('/\s*=>\s*/', $iteratorPart);
@@ -378,7 +377,6 @@ class MY_Parser extends CI_Parser
                         $keyName = trim($pair[0]);
                         $valueName = trim($pair[1]);
                         foreach ($array as $k => $row) {
-                            // Para arrays numéricos (no asociativos) los elementos son escalares; para asociativos, se preserva el valor tal cual
                             $context = array_replace($globalContext, array(
                                 $keyName => $k,
                                 $valueName => $row
@@ -405,6 +403,9 @@ class MY_Parser extends CI_Parser
         );
     }
     
+    // ---------------------------
+    // _get_nested_value_from_brackets
+    // ---------------------------
     protected function _get_nested_value_from_brackets($variable, $data)
     {
         preg_match_all('/[a-zA-Z0-9_.]+/', $variable, $matches);
@@ -419,6 +420,9 @@ class MY_Parser extends CI_Parser
         return $data;
     }
     
+    // ---------------------------
+    // _parse_helpers
+    // ---------------------------
     protected function _parse_helpers($template, $data)
     {
         preg_match_all('#'.$this->l_delim.'(\w+)\(([^{}]*)\)'.$this->r_delim.'#s', $template, $helpers, PREG_SET_ORDER);
@@ -450,7 +454,7 @@ class MY_Parser extends CI_Parser
                     }
                     catch (Exception $error)
                     {
-                        // Manejo opcional de errores
+                        // Opcional: manejo de errores
                     }
                 }
             }
@@ -459,6 +463,9 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
+    // ---------------------------
+    // _parse_helper_args
+    // ---------------------------
     protected function _parse_helper_args($args_string, $data)
     {
         if (!empty($args_string))
@@ -524,6 +531,9 @@ class MY_Parser extends CI_Parser
         return array();
     }
     
+    // ---------------------------
+    // _parse_nested_paths
+    // ---------------------------
     protected function _parse_nested_paths($template, $data)
     {
         // Procesa bloques de bucle con notación de corchetes: {variable} ... {/variable}
@@ -568,6 +578,9 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
+    // ---------------------------
+    // _parse_object
+    // ---------------------------
     protected function _parse_object($key, $val, $template)
     {
         $replace = array();
@@ -616,6 +629,9 @@ class MY_Parser extends CI_Parser
         return $replace;
     }
     
+    // ---------------------------
+    // _parse_pair
+    // ---------------------------
     protected function _parse_pair($variable, $data, $string)
     {
         $replace = array();
@@ -680,6 +696,9 @@ class MY_Parser extends CI_Parser
         return $replace;
     }
     
+    // ---------------------------
+    // _replace_unparsed
+    // ---------------------------
     protected function _replace_unparsed($template)
     {
         preg_match_all('#('.$this->l_delim.'(\w+)'.$this->r_delim.'(.+?)'.$this->l_delim.'\/(\2)'.$this->r_delim.')#sU', $template, $unparsed, PREG_SET_ORDER);
@@ -696,10 +715,9 @@ class MY_Parser extends CI_Parser
         {
             foreach ($unparsed as $u)
             {
-                // Excluimos {else}, {break}, {default}, {key} y {value} para que no se reemplacen
                 if (!in_array($u[0], array(
-                    $this->l_delim.'else'.$this->r_delim, 
-                    $this->l_delim.'break'.$this->r_delim, 
+                    $this->l_delim.'else'.$this->r_delim,
+                    $this->l_delim.'break'.$this->r_delim,
                     $this->l_delim.'default'.$this->r_delim,
                     '{key}',
                     '{value}'
@@ -713,9 +731,19 @@ class MY_Parser extends CI_Parser
         return $template;
     }
     
-    protected function _remove_unparsed($template)
+    // ---------------------------
+    // _remove_unparsed
+    // ---------------------------
+    protected function _remove_unparsed($template, $data = array())
     {
-        return str_ireplace('%EMPTY_VAR%', '', $template);
+        // Borramos solo aquellos placeholders que NO sean una sola palabra alfanumérica
+        return preg_replace_callback('/\{([^}]+)\}/', function($matches) use ($data) {
+            $key = $matches[1];
+            if (preg_match('/^[a-zA-Z0-9_]+$/', $key)) {
+                return $matches[0]; // conserva el placeholder
+            }
+            return '';
+        }, $template);
     }
     
 }
