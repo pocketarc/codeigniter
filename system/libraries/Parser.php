@@ -160,7 +160,7 @@ class CI_Parser {
         $template = $this->_parse_helpers($template, $data);
 
         // Optionally, one could remove any remaining unparsed tags.
-        // $template = $this->_remove_unparsed($template, $data);
+        $template = $this->_remove_unparsed($template, $data);
 
         // Either output the template or return it.
         if ($return === FALSE)
