@@ -42,7 +42,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @subpackage  Libraries
  * @category    Library
  */
-class MY_Parser extends CI_Parser {
+class NOTMY_Parser extends CI_Parser {
 
     // ---------------------------
     // Método principal _parse
@@ -56,13 +56,13 @@ class MY_Parser extends CI_Parser {
     
         // Combina los datos pasados con las variables globales de CI.
         $data = array_merge($data, $this->CI->load->get_vars());
-
+    
         // Procesa primero los bucles tradicionales (for)
         $template = $this->_parse_loops($template, TRUE);
-
-        $template = $this->_parse_foreach($template, $data);
-        
     
+        // Procesa todos los foreach; esto se encarga de la recursividad de los bloques dinámicos
+        $template = $this->_parse_foreach($template, $data);
+            
         $replace = array();
         foreach ($data as $key => $val)
         {
@@ -73,24 +73,23 @@ class MY_Parser extends CI_Parser {
                 $this->_parse_single($key, (string)$val, $template))
             );
         }
-    
+        
         foreach ($replace as $from => $to)
         {
             $template = str_ireplace($from, (!is_null($to) ? $to : '%EMPTY_VAR%'), $template);
         }
-    
-        // $template = $this->_replace_unparsed($template);
+        
         $template = $this->_parse_helpers($template, $data);
-        // Procesa la etiqueta foreach (con nombres dinámicos permitidos)
         $template = $this->_parse_nested_paths($template, $data);
         $template = $this->_parse_switch($template, TRUE);
         $template = $this->_parse_conditionals($template, TRUE);
         $template = $this->_parse_helpers($template, $data);
-        // Remueve placeholders que no estén definidos en el contexto (se pasa el contexto actual)
-        //$template = $this->_remove_unparsed($template, $data);
         
-        //$template = $this->_parse_foreach($template, $data);
-
+        // No se debe volver a llamar a _parse_foreach sobre el template completo con $data global,
+        // ya que eso pierde el contexto local de los bloques foreach ya procesados.
+        // Por lo tanto, elimina esta línea:
+        // $template = $this->_parse_foreach($template, $data);
+        
         if ($return === FALSE)
         {
             $this->CI->output->append_output($template);
@@ -99,9 +98,9 @@ class MY_Parser extends CI_Parser {
         {
             return $template;
         }
-    
-        return $template;
     }
+    
+
     
     // ---------------------------
     // _parse_conditionals
@@ -348,77 +347,123 @@ class MY_Parser extends CI_Parser {
         return $template;
     }
     
-    // ---------------------------
-    // _parse_foreach
-    // ---------------------------
-    protected function _parse_foreach($template, $data)
-    {
-        return preg_replace_callback(
-            '/\{foreach\((.*?)\)\}(.*?)\{\/foreach\}/is',
-            function($matches) use ($data) {
-                $expr = trim($matches[1]);
-                $parts = preg_split('/\s+as\s+/i', $expr);
-                if (count($parts) != 2) {
-                    return '';
-                }
-                $varPath = trim($parts[0]);      // Ejemplo: "fruits_by_color" o "invoice[items]"
-                $iteratorPart = trim($parts[1]); // Ejemplo: "color => fruitList" o "fruit"
-    
-                // Extrae el array usando la notación con corchetes
-                $array = $this->_get_nested_value_from_brackets($varPath, $data);
-                $result = '';
-                if (is_array($array)) {
-                    $globalContext = $data;
-                    if (strpos($iteratorPart, '=>') !== false) {
-                        $pair = preg_split('/\s*=>\s*/', $iteratorPart);
-                        if (count($pair) != 2) {
-                            return '';
-                        }
-                        $keyName = trim($pair[0]);
-                        $valueName = trim($pair[1]);
-                        foreach ($array as $k => $row) {
-                            $context = array_replace($globalContext, array(
-                                $keyName => $k,
-                                $valueName => $row
-                            ));
-                            $parsedBlock = $this->_parse($matches[2], $context, true);
-                            $parsedBlock = $this->_parse_foreach($parsedBlock, $context);
-                            $result .= $parsedBlock;
-                        }
-                    } else {
-                        $varName = $iteratorPart;
-                        foreach ($array as $row) {
-                            $context = array_replace($globalContext, array(
-                                $varName => $row
-                            ));
-                            $parsedBlock = $this->_parse($matches[2], $context, true);
-                            $parsedBlock = $this->_parse_foreach($parsedBlock, $context);
-                            $result .= $parsedBlock;
-                        }
-                    }
-                }
-                return $result;
-            },
-            $template
-        );
-    }
-    
-    // ---------------------------
-    // _get_nested_value_from_brackets
-    // ---------------------------
-    protected function _get_nested_value_from_brackets($variable, $data)
-    {
-        preg_match_all('/[a-zA-Z0-9_.]+/', $variable, $matches);
-        $parts = $matches[0];
-        foreach ($parts as $part) {
-            if (is_array($data) && array_key_exists($part, $data)) {
-                $data = $data[$part];
-            } else {
-                return null;
+/**
+ * Procesa recursivamente los bloques {foreach(...)} ... {/foreach}
+ * utilizando una expresión regular recursiva para soportar anidamiento.
+ *
+ * @param string $template El template a parsear.
+ * @param array  $data     El contexto de datos.
+ * @return string          El template con los bloques foreach procesados.
+ */
+protected function _parse_foreach($template, $data)
+{
+    // Esta expresión regular recursiva busca bloques {foreach(...)} ... {/foreach}
+    // y soporta anidamientos gracias al uso de (?R)
+    $pattern = '/
+        \{foreach\(
+            (.*?)           # 1: Contenido interno de la etiqueta foreach (la expresión)
+        \)\}               
+        (                  # 2: Contenido del bloque
+            (?:
+                (?> [^{]+ )    # texto sin {
+                |
+                \{(?!\/?foreach)  # { que no inicia un bloque foreach
+                |
+                (?R)           # llamada recursiva para bloques foreach anidados
+            )*
+        )
+        \{\/foreach\}      # Etiqueta de cierre
+    /isx';
+
+    $template = preg_replace_callback($pattern, function ($matches) use ($data) {
+        // $matches[1]: expresión interna (por ejemplo, "fruits_by_color as color => fruitList")
+        // $matches[2]: contenido del bloque
+        $expr = trim($matches[1]);
+        $blockContent = $matches[2];
+
+        // Se espera el formato: "variable as key => value" o "variable as value"
+        $parts = preg_split('/\s+as\s+/i', $expr);
+        if (count($parts) != 2) {
+            return '';
+        }
+        $varPath = trim($parts[0]);
+        $iteratorPart = trim($parts[1]);
+
+        // Se obtiene el array sobre el cual iterar usando _get_nested_value_from_brackets.
+        $array = $this->_get_nested_value_from_brackets($varPath, $data);
+        if (!is_array($array)) {
+            return '';
+        }
+
+        $result = '';
+        $globalContext = $data;
+        if (strpos($iteratorPart, '=>') !== false) {
+            $pair = preg_split('/\s*=>\s*/', $iteratorPart);
+            if (count($pair) != 2) {
+                return '';
+            }
+            $keyName = trim($pair[0]);
+            $valueName = trim($pair[1]);
+            foreach ($array as $k => $row) {
+                // Se crea un contexto para esta iteración
+                $context = array_merge($globalContext, [
+                    $keyName   => $k,
+                    $valueName => $row
+                ]);
+                // Procesa primero los bloques foreach anidados dentro del contenido
+                $inner = $this->_parse_foreach($blockContent, $context);
+                // Luego se procesa _parse() para reemplazar placeholders, helpers, etc.
+                $inner = $this->_parse($inner, $context, true);
+                $result .= $inner;
+            }
+        } else {
+            // Caso "variable as value"
+            $varName = $iteratorPart;
+            foreach ($array as $row) {
+                $context = array_merge($globalContext, [
+                    $varName => $row
+                ]);
+                $inner = $this->_parse_foreach($blockContent, $context);
+                $inner = $this->_parse($inner, $context, true);
+                $result .= $inner;
             }
         }
-        return $data;
+        return $result;
+    }, $template);
+
+    return $template;
+}
+
+/**
+ * Método auxiliar que extrae el valor de una variable (posiblemente anidada) del array $data.
+ * Funciona tanto para claves simples como para notación con corchetes (ej. "invoice[items]").
+ *
+ * @param string $variable La clave o ruta.
+ * @param array  $data     El contexto de datos.
+ * @return mixed           El valor obtenido o null si no se encuentra.
+ */
+protected function _get_nested_value_from_brackets($variable, $data)
+{
+    // Si no hay corchetes, se asume una clave simple.
+    if (strpos($variable, '[') === false) {
+        return isset($data[$variable]) ? $data[$variable] : null;
     }
+    
+    // Extrae todas las partes usando una expresión regular.
+    preg_match_all('/([a-zA-Z0-9_]+)/', $variable, $matches);
+    $parts = $matches[1];
+    foreach ($parts as $part) {
+        if (is_array($data) && array_key_exists($part, $data)) {
+            $data = $data[$part];
+        } else {
+            return null;
+        }
+    }
+    return $data;
+}
+
+
+
     
     // ---------------------------
     // _parse_helpers
