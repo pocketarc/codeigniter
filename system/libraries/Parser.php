@@ -13,7 +13,7 @@
  * methods, so that the new CI_Parser class can be used as a drop‑in replacement.
  *
  * @package     CodeIgniter
- * @author      EllisLab Dev Team / Modified by Your Name
+ * @author      EllisLab Dev Team / Modified by Juan Luis Lopez Ruiz and based on https://github.com/gccloud/parser changes
  * @license     https://opensource.org/licenses/MIT MIT License
  * @link        https://codeigniter.com
  * @since       Version 1.0.0
@@ -145,7 +145,7 @@ class CI_Parser {
                     ? $this->_parse_object($key, $val, $template)
                     : (is_array($val)
                         ? $this->_parse_pair($key, $val, $template)
-                        : $this->_parse_single($key, (string)$val, $template))
+                        : $this->_parse_single($key, (string)$val))
             );
         }
 
@@ -173,33 +173,15 @@ class CI_Parser {
     // --------------------------------------------------------------------
 
     /**
-     * Set Custom Delimiters.
-     *
-     * Allows customization of the left and right delimiters that enclose template variables.
-     *
-     * @param string $l The left delimiter (default is '{').
-     * @param string $r The right delimiter (default is '}').
-     * @return void
-     */
-    public function set_delimiters($l = '{', $r = '}')
-    {
-        $this->l_delim = $l;
-        $this->r_delim = $r;
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
      * Parse a Single Variable Placeholder.
      *
      * Replaces a simple variable placeholder (e.g., {title}) with its corresponding value.
      *
      * @param string $key    The variable name.
      * @param string $val    The value to substitute.
-     * @param string $string The template string (unused here).
      * @return array         An associative array mapping the placeholder to its value.
      */
-    protected function _parse_single($key, $val, $string)
+    protected function _parse_single($key, $val)
     {
         return array($this->l_delim.$key.$this->r_delim => (string)$val);
     }

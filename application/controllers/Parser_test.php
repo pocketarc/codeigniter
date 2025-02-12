@@ -138,6 +138,10 @@ class Parser_test extends CI_Controller {
 		);
 
 		$template = '
+			<p>Simple variable parsing</p>
+			<p>Hello {username}, you are {age} years old</p>
+			<hr>
+			
 			<p>Using Switch</p>
 				{foreach(fruits as fruit)}
 					{switch {fruit}}
