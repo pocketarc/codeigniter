@@ -303,21 +303,19 @@ class CI_Parser {
      */
     protected function _parse_conditionals($template, $preprocess = FALSE)
     {
-        $currency = '&pound;';
-
         if ($preprocess)
         {
             $if_pattern = $this->l_delim.'if ';
             $else_pattern = $this->l_delim.'else'.$this->r_delim;
             $endif_pattern = $this->l_delim.'\/if'.$this->r_delim;
 
-            preg_match_all('#'.$if_pattern.'|'.$else_pattern.'|'.$endif_pattern.'#sU', $template, $preprocess, PREG_SET_ORDER);
+            preg_match_all('#'.$if_pattern.'|'.$else_pattern.'|'.$endif_pattern.'#sU', $template, $matchesPre, PREG_SET_ORDER);
 
             if (!empty($preprocess))
             {
                 $count = 0;
                 $last_count = array();
-                foreach ($preprocess as $p)
+                foreach ($matchesPre as $p)
                 {
                     if ($p[0] === $if_pattern)
                     {
@@ -347,7 +345,7 @@ class CI_Parser {
             foreach ($conditionals as $conditional)
             {
                 $output = $conditional[3];
-                $statement = str_replace($currency, '', $conditional[2]);
+                $statement = $conditional[2];
 
                 preg_match('#(.+\s?)(>|>=|<>|!=|==|<=|<)(.+\s?)#', $statement, $comparison);
 
@@ -435,20 +433,18 @@ class CI_Parser {
      */
     protected function _parse_switch($template, $preprocess = FALSE)
     {
-        $currency = '&pound;';
-
         if ($preprocess)
         {
             $switch_pattern = $this->l_delim.'switch ';
             $endswitch_pattern = $this->l_delim.'\/switch'.$this->r_delim;
 
-            preg_match_all('#'.$switch_pattern.'|'.$endswitch_pattern.'#sU', $template, $preprocess, PREG_SET_ORDER);
+            preg_match_all('#'.$switch_pattern.'|'.$endswitch_pattern.'#sU', $template, $matchesPre, PREG_SET_ORDER);
 
             if (!empty($preprocess))
             {
                 $count = 0;
                 $last_count = array();
-                foreach ($preprocess as $p)
+                foreach ($matchesPre as $p)
                 {
                     if ($p[0] === $switch_pattern)
                     {
@@ -471,7 +467,7 @@ class CI_Parser {
             foreach ($conditionals as $conditional)
             {
                 $code = $conditional[0];
-                $statement = str_replace($currency, '', $conditional[2]);
+                $statement = $conditional[2];
                 $output = '';
                 $sub = $conditional[3];
                 preg_match_all('#'.$this->l_delim.'case (.+)'.$this->r_delim.'(.+)'.$this->l_delim.'break'.$this->r_delim.'#sU', $sub, $cases, PREG_SET_ORDER);
@@ -521,13 +517,13 @@ class CI_Parser {
             $for_pattern = $this->l_delim.'for ';
             $endfor_pattern = $this->l_delim.'\/for'.$this->r_delim;
 
-            preg_match_all('#'.$for_pattern.'|'.$endfor_pattern.'#sU', $template, $preprocess, PREG_SET_ORDER);
+            preg_match_all('#'.$for_pattern.'|'.$endfor_pattern.'#sU', $template, $matchesPre, PREG_SET_ORDER);
 
             if (!empty($preprocess))
             {
                 $count = 0;
                 $last_count = array();
-                foreach ($preprocess as $p)
+                foreach ($matchesPre as $p)
                 {
                     if ($p[0] === $for_pattern)
                     {
