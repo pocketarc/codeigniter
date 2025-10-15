@@ -71,9 +71,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @var	array
 	 */
-	public $qb_select			= array();
+    public $qb_select = [];
 
-	/**
+    /**
 	 * QB DISTINCT flag
 	 *
 	 * @var	bool
@@ -141,10 +141,10 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 *
 	 * @var	array
 	 */
-	public $qb_orderby			= array();
+	public $qb_orderby = [];
 
-	/**
-	 * QB data sets
+    /**
+     * QB data sets
 	 *
 	 * @var	array
 	 */
@@ -294,7 +294,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 
 		foreach ($select as $val)
 		{
-			$val = trim($val);
+			$val = trim((string)$val);
 
 			if ($val !== '')
 			{
@@ -408,10 +408,10 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 
 		if ($alias === '')
 		{
-			$alias = $this->_create_alias_from_table(trim($select));
+			$alias = $this->_create_alias_from_table(trim((string)$select));
 		}
 
-		$sql = $type.'('.$this->protect_identifiers(trim($select)).') AS '.$this->escape_identifiers(trim($alias));
+		$sql = $type.'('.$this->protect_identifiers(trim((string)$select)).') AS '.$this->escape_identifiers(trim((string)$alias));
 
 		$this->qb_select[] = $sql;
 		$this->qb_no_escape[] = NULL;
@@ -492,7 +492,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			}
 			else
 			{
-				$val = trim($val);
+				$val = trim((string)$val);
 
 				// Extract any aliases that might exist. We use this information
 				// in the protect_identifiers to know whether to add a table prefix
@@ -526,30 +526,22 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function join($table, $cond, $type = '', $escape = NULL)
 	{
-		if ($type === null) {
-			$type = '';
-		}
+		$type = trim(strtoupper($type) . ' JOIN');
+        preg_match('#^(NATURAL\s+)?((LEFT|RIGHT|FULL)\s+)?((INNER|OUTER)\s+)?JOIN$#', $type) or $type = 'JOIN';
 
-		if (!is_string($type)) {
-			throw new InvalidArgumentException('join() expects parameter 3 to be a string, ' . gettype($type) . ' given');
-		}
-
-		$type = trim(strtoupper($type).' JOIN');
-		preg_match('#^(NATURAL\s+)?((LEFT|RIGHT|FULL)\s+)?((INNER|OUTER)\s+)?JOIN$#', $type) OR $type = 'JOIN';
-
-		// Extract any aliases that might exist. We use this information
+        // Extract any aliases that might exist. We use this information
 		// in the protect_identifiers to know whether to add a table prefix
 		$this->_track_aliases($table);
 
 		is_bool($escape) OR $escape = $this->_protect_identifiers;
 
 		if (strpos($type, 'NATURAL') === 0)
-		{
-			$cond = '';
-		}
-		elseif ( ! $this->_has_operator($cond))
-		{
-			$cond = ' USING ('.($escape ? $this->escape_identifiers($cond) : $cond).')';
+        {
+            $cond = '';
+        }
+        elseif (!$this->_has_operator($cond))
+        {
+            $cond = ' USING ('.($escape ? $this->escape_identifiers($cond) : $cond).')';
 		}
 		elseif ($escape === FALSE)
 		{
@@ -596,9 +588,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 		}
 
 		// Assemble the JOIN statement
-		$this->qb_join[] = $join = $type.' '.$table.$cond;
+		$this->qb_join[] = $join = $type . ' ' . $table . $cond;
 
-		if ($this->qb_caching === TRUE)
+        if ($this->qb_caching === TRUE)
 		{
 			$this->qb_cache_join[] = $join;
 			$this->qb_cache_exists[] = 'join';
@@ -700,12 +692,12 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 				$k = substr($k, 0, $match[0][1]).($match[1][0] === '=' ? ' IS NULL' : ' IS NOT NULL');
 			}
 
-			$$qb_key = array('condition' => $prefix.$k, 'value' => $v, 'escape' => $escape);
-			$this->{$qb_key}[] = $$qb_key;
-			if ($this->qb_caching === TRUE)
+			$$qb_key = ['condition' => $prefix . $k, 'value' => $v, 'escape' => $escape];
+            $this->{$qb_key}[] = $$qb_key;
+            if ($this->qb_caching === TRUE)
 			{
 				$this->{$qb_cache_key}[] = $$qb_key;
-				$this->qb_cache_exists[] = substr($qb_key, 3);
+                $this->qb_cache_exists[] = substr($qb_key, 3);
 			}
 
 		}
@@ -727,11 +719,11 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @return	CI_DB_query_builder
 	 */
 	public function where_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_where', $key, $values, FALSE, 'AND ', $escape);
-	}
+    {
+        return $this->_wh_in('qb_where', $key, $values, FALSE, 'AND ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
 	/**
 	 * OR WHERE IN
@@ -745,11 +737,11 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @return	CI_DB_query_builder
 	 */
 	public function or_where_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_where', $key, $values, FALSE, 'OR ', $escape);
-	}
+    {
+        return $this->_wh_in('qb_where', $key, $values, FALSE, 'OR ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
 	/**
 	 * WHERE NOT IN
@@ -763,11 +755,11 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @return	CI_DB_query_builder
 	 */
 	public function where_not_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_where', $key, $values, TRUE, 'AND ', $escape);
-	}
+    {
+        return $this->_wh_in('qb_where', $key, $values, TRUE, 'AND ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
 	/**
 	 * OR WHERE NOT IN
@@ -781,116 +773,120 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * @return	CI_DB_query_builder
 	 */
 	public function or_where_not_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_where', $key, $values, TRUE, 'OR ', $escape);
-	}
+    {
+        return $this->_wh_in('qb_where', $key, $values, TRUE, 'OR ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
 	/**
 	 * HAVING IN
-	 *
-	 * Generates a HAVING field IN('item', 'item') SQL query,
-	 * joined with 'AND' if appropriate.
-	 *
-	 * @param	string	$key	The field to search
-	 * @param	array	$values	The values searched on
-	 * @param	bool	$escape
-	 * @return	CI_DB_query_builder
-	 */
-	public function having_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_having', $key, $values, FALSE, 'AND ', $escape);
-	}
+     *
+     * Generates a HAVING field IN('item', 'item') SQL query,
+     * joined with 'AND' if appropriate.
+     *
+     * @param  string $key    The field to search
+     * @param  array  $values The values searched on
+     * @param  bool   $escape
+     * @return    CI_DB_query_builder
+     */
+    public function having_in($key, array $values, $escape = NULL)
+    {
+        return $this->_wh_in('qb_having', $key, $values, FALSE, 'AND ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
-	/**
-	 * OR HAVING IN
-	 *
-	 * Generates a HAVING field IN('item', 'item') SQL query,
-	 * joined with 'OR' if appropriate.
-	 *
-	 * @param	string	$key	The field to search
-	 * @param	array	$values	The values searched on
-	 * @param	bool	$escape
-	 * @return	CI_DB_query_builder
-	 */
-	public function or_having_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_having', $key, $values, FALSE, 'OR ', $escape);
-	}
+    /**
+     * OR HAVING IN
+     *
+     * Generates a HAVING field IN('item', 'item') SQL query,
+     * joined with 'OR' if appropriate.
+     *
+     * @param  string $key    The field to search
+     * @param  array  $values The values searched on
+     * @param  bool   $escape
+     *
+     * @return    CI_DB_query_builder
+     */
+    public function or_having_in($key, array $values, $escape = NULL)
+    {
+        return $this->_wh_in('qb_having', $key, $values, FALSE, 'OR ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
-	/**
-	 * HAVING NOT IN
-	 *
-	 * Generates a HAVING field NOT IN('item', 'item') SQL query,
-	 * joined with 'AND' if appropriate.
-	 *
-	 * @param	string	$key	The field to search
-	 * @param	array	$values	The values searched on
-	 * @param	bool	$escape
-	 * @return	CI_DB_query_builder
-	 */
-	public function having_not_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_having', $key, $values, TRUE, 'AND ', $escape);
-	}
+    /**
+     * HAVING NOT IN
+     *
+     * Generates a HAVING field NOT IN('item', 'item') SQL query,
+     * joined with 'AND' if appropriate.
+     *
+     * @param  string $key    The field to search
+     * @param  array  $values The values searched on
+     * @param  bool   $escape
+     *
+     * @return    CI_DB_query_builder
+     */
+    public function having_not_in($key, array $values, $escape = NULL)
+    {
+        return $this->_wh_in('qb_having', $key, $values, TRUE, 'AND ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
-	/**
-	 * OR HAVING NOT IN
-	 *
-	 * Generates a HAVING field NOT IN('item', 'item') SQL query,
-	 * joined with 'OR' if appropriate.
-	 *
-	 * @param	string	$key	The field to search
-	 * @param	array	$values	The values searched on
-	 * @param	bool	$escape
-	 * @return	CI_DB_query_builder
-	 */
-	public function or_having_not_in($key, array $values, $escape = NULL)
-	{
-		return $this->_wh_in('qb_having', $key, $values, TRUE, 'OR ', $escape);
-	}
+    /**
+     * OR HAVING NOT IN
+     *
+     * Generates a HAVING field NOT IN('item', 'item') SQL query,
+     * joined with 'OR' if appropriate.
+     *
+     * @param  string $key    The field to search
+     * @param  array  $values The values searched on
+     * @param  bool   $escape
+     *
+     * @return    CI_DB_query_builder
+     */
+    public function or_having_not_in($key, array $values, $escape = NULL)
+    {
+        return $this->_wh_in('qb_having', $key, $values, TRUE, 'OR ', $escape);
+    }
 
-	// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
-	/**
-	 * Internal WHERE/HAVING IN
-	 *
-	 * @used-by	where_in()
+    /**
+     * Internal WHERE/HAVING IN
+     *
+     * @used-by	where_in()
 	 * @used-by	or_where_in()
 	 * @used-by	where_not_in()
 	 * @used-by	or_where_not_in()
-	 * @used-by	having_in()
-	 * @used-by	or_having_in()
-	 * @used-by	having_not_in()
-	 * @used-by	or_having_not_in()
-	 *
-	 * @param	string	$qb_key	'qb_where' or 'qb_having'
-	 * @param	string	$key	The field to search
+	 * @used-by    having_in()
+     * @used-by    or_having_in()
+     * @used-by    having_not_in()
+     * @used-by    or_having_not_in()
+     *
+     * @param  string $qb_key 'qb_where' or 'qb_having'
+     * @param	string	$key	The field to search
 	 * @param	array	$values	The values searched on
 	 * @param	bool	$not	If the statement would be IN or NOT IN
 	 * @param	string	$type
 	 * @param	bool	$escape
+	 *
 	 * @return	CI_DB_query_builder
 	 */
-	protected function _wh_in($qb_key, $key, array $values, $not = FALSE, $type = 'AND ', $escape = NULL)
+    protected function _wh_in($qb_key, $key, array $values, $not = FALSE, $type = 'AND ', $escape = NULL)
 	{
-		$qb_cache_key = ($qb_key === 'qb_having') ? 'qb_cache_having' : 'qb_cache_where';
+        $qb_cache_key = ($qb_key === 'qb_having') ? 'qb_cache_having' : 'qb_cache_where';
 
-		if (empty($key) OR ! is_string($key))
+        if (empty($key) or !is_string($key))
 		{
-			throw new InvalidArgumentException(sprintf('%s() expects $key to be a non-empty string', debug_backtrace(0, 2)[1]['function']));
+            throw new InvalidArgumentException(sprintf('%s() expects $key to be a non-empty string', debug_backtrace(0, 2)[1]['function']));
 		}
 
-		if (empty($values))
+        if (empty($values))
 		{
-			throw new InvalidArgumentException(sprintf('%s() expects $values to be a non-empty array', debug_backtrace(0, 2)[1]['function']));
+            throw new InvalidArgumentException(sprintf('%s() expects $values to be a non-empty array', debug_backtrace(0, 2)[1]['function']));
 		}
 
 		is_bool($escape) OR $escape = $this->_protect_identifiers;
@@ -899,33 +895,33 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 
 		if ($escape === TRUE)
 		{
-			$wh_in = array();
-			foreach ($values as $value)
+            $wh_in = [];
+            foreach ($values as $value)
 			{
-				$wh_in[] = $this->escape($value);
-			}
+                $wh_in[] = $this->escape($value);
+            }
 		}
 		else
 		{
 			$wh_in = array_values($values);
-		}
+        }
 
 		$prefix = (count($this->$qb_key) === 0 && count($this->$qb_cache_key) === 0)
-			? $this->_group_get_type('')
+            ? $this->_group_get_type('')
 			: $this->_group_get_type($type);
 
 		$wh_in = array(
-			'condition' => $prefix.$key.$not.' IN('.implode(', ', $wh_in).')',
-			'value' => NULL,
+            'condition' => $prefix . $key . $not . ' IN(' . implode(', ', $wh_in) . ')',
+            'value' => NULL,
 			'escape' => $escape
 		);
 
 		$this->{$qb_key}[] = $wh_in;
-		if ($this->qb_caching === TRUE)
+        if ($this->qb_caching === TRUE)
 		{
 			$this->{$qb_cache_key}[] = $wh_in;
-			$this->qb_cache_exists[] = substr($qb_key, 3);
-		}
+            $this->qb_cache_exists[] = substr($qb_key, 3);
+        }
 
 		return $this;
 	}
@@ -1217,7 +1213,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 
 		foreach ($by as $val)
 		{
-			$val = trim($val);
+			$val = trim((string)$val);
 
 			if ($val !== '')
 			{
@@ -1281,17 +1277,9 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	public function order_by($orderby, $direction = '', $escape = NULL)
 	{
-		if ($direction === null) {
-			$direction = '';
-		}
+		$direction = strtoupper(trim((string)$direction));
 
-		if (!is_string($direction)) {
-			throw new InvalidArgumentException('order_by() expects parameter 2 to be a string, ' . gettype($direction) . ' given');
-		}
-
-		$direction = strtoupper(trim($direction));
-
-		if ($direction === 'RANDOM')
+        if ($direction === 'RANDOM')
 		{
 			$direction = '';
 
@@ -1321,7 +1309,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			foreach (explode(',', $orderby) as $field)
 			{
 				$qb_orderby[] = ($direction === '' && preg_match('/\s+(ASC|DESC)$/i', rtrim($field), $match, PREG_OFFSET_CAPTURE))
-					? array('field' => ltrim(substr($field, 0, $match[0][1])), 'direction' => ' '.$match[1][0], 'escape' => TRUE)
+					? array('field' => ltrim(substr($field, 0, $match[0][1])), 'direction' => ' '. $match[1][0], 'escape' => TRUE)
 					: array('field' => trim($field), 'direction' => $direction, 'escape' => TRUE);
 			}
 		}
@@ -2377,7 +2365,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 			$table = preg_replace('/\s+AS\s+/i', ' ', $table);
 
 			// Grab the alias
-			$table = trim(strrchr($table, ' '));
+			$table = trim((string)strrchr($table, ' '));
 
 			// Store the alias, if it doesn't already exist
 			if ( ! in_array($table, $this->qb_aliased_tables, TRUE))
@@ -2525,7 +2513,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 					}
 
 					$conditions[$ci] = $matches[1].$this->protect_identifiers(trim($matches[2]))
-						.' '.trim($matches[3]).$matches[4].$matches[5];
+						.' '.trim($matches[3]). $matches[4]. $matches[5];
 				}
 
 				$this->{$qb_key}[$i] = implode('', $conditions).(isset($this->{$qb_key}[$i]['value']) ? ' '.$this->{$qb_key}[$i]['value'] : '');
@@ -2796,7 +2784,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 */
 	protected function _is_literal($str)
 	{
-		$str = trim($str);
+		$str = trim((string)$str);
 
 		if (empty($str) OR ctype_digit($str) OR (string) (float) $str === $str OR in_array(strtoupper($str), array('TRUE', 'FALSE'), TRUE))
 		{
