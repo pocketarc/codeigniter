@@ -177,7 +177,7 @@ class CI_DB_oci8_driver extends CI_DB {
 			return;
 		}
 		elseif ($this->hostname !== '' && strpos($this->hostname, '/') === FALSE && strpos($this->hostname, ':') === FALSE
-			&& (( ! empty($this->port) && ctype_digit($this->port)) OR $this->database !== ''))
+			&& (( ! empty($this->port) && ctype_digit((string) $this->port)) OR $this->database !== ''))
 		{
 			/* If the hostname field isn't empty, doesn't contain
 			 * ':' and/or '/' and if port and/or database aren't
@@ -187,7 +187,7 @@ class CI_DB_oci8_driver extends CI_DB {
 			 * that the database field is a service name.
 			 */
 			$this->dsn = $this->hostname
-				.(( ! empty($this->port) && ctype_digit($this->port)) ? ':'.$this->port : '')
+				.(( ! empty($this->port) && ctype_digit((string) $this->port)) ? ':'.$this->port : '')
 				.($this->database !== '' ? '/'.ltrim($this->database, '/') : '');
 
 			if (preg_match($valid_dsns['ec'], $this->dsn))
