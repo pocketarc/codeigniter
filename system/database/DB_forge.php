@@ -561,13 +561,18 @@ abstract class CI_DB_forge {
 	 * @param	array	$field	Column definition
 	 * @return	bool
 	 */
-	public function add_column($table, $field)
+	public function add_column($table, $field, $_after = NULL)
 	{
 		// Work-around for literal column definitions
 		is_array($field) OR $field = array($field);
 
 		foreach (array_keys($field) as $k)
 		{
+			if ($_after !== NULL && is_array($field[$k]) && ! isset($field[$k]['after']))
+			{
+				$field[$k]['after'] = $_after;
+			}
+
 			$this->add_field(array($k => $field[$k]));
 		}
 
