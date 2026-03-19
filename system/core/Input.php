@@ -663,6 +663,22 @@ class CI_Input {
 	// --------------------------------------------------------------------
 
 	/**
+	 * Is CLI request?
+	 *
+	 * Test to see if a request was made from the command line.
+	 *
+	 * @deprecated	3.0.0	Use is_cli() instead
+	 * @see		is_cli()
+	 * @return	bool
+	 */
+	public function is_cli_request()
+	{
+		return is_cli();
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
 	 * Get Request Method
 	 *
 	 * Return the request method
