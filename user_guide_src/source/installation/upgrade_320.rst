@@ -1,6 +1,11 @@
-#############################
-Upgrading from 3.1.x to 3.2.x
-#############################
+#######################################
+Upgrading from 3.1.x or 3.2-dev to 3.2+
+#######################################
+
+This guide covers upgrading to this maintenance fork, which is based on
+the unreleased CodeIgniter 3.2.0-dev. Many unnecessary breaking changes
+from 3.2.0-dev have been reverted to preserve backward compatibility.
+This is the same guide whether you are coming from 3.1.x or 3.2-dev.
 
 Before performing an update you should take your site offline by
 replacing the index.php file with a static one.
@@ -8,7 +13,16 @@ replacing the index.php file with a static one.
 Step 1: Update your CodeIgniter files
 =====================================
 
-Replace all files and directories in your *system/* directory.
+Install via Composer (recommended)::
+
+	composer require pocketarc/codeigniter
+
+Then update the ``$system_path`` in your ``index.php``::
+
+	$system_path = 'vendor/pocketarc/codeigniter/system';
+
+Alternatively, you can manually replace all files and directories in
+your *system/* directory.
 
 .. note:: If you have any custom developed files in these directories,
 	please make copies of them first.
@@ -16,13 +30,9 @@ Replace all files and directories in your *system/* directory.
 Step 2: Check your PHP version
 ==============================
 
-We recommend always running versions that are `currently supported
-<https://secure.php.net/supported-versions.php>`_, which right now is at least PHP 5.6.
-
-PHP 5.3.x versions are now officially not supported by CodeIgniter, and while 5.4.8+
-may be at least runnable, we strongly discourage you from using any PHP versions below
-the ones listed on the `PHP.net Supported Versions <https://secure.php.net/supported-versions.php>`_
-page.
+This fork supports PHP 5.4 through 8.5+. We recommend running a
+`currently supported <https://www.php.net/supported-versions.php>`_
+PHP version (8.4 or newer).
 
 Step 3: Calls to ``CI_Model::__construct()`` (optional cleanup)
 ===============================================================
@@ -169,26 +179,13 @@ Step 10: Remove usage of previously deprecated functionalities
 ==============================================================
 
 The following is a list of functionalities deprecated in previous
-CodeIgniter versions that have been removed in 3.2.0:
+CodeIgniter versions that have been removed in 3.2+:
 
 - ``$config['allow_get_array']`` (use ``$_GET = array();`` instead)
 - ``$config['standardize_newlines']``
 - ``$config['rewrite_short_tags']`` (no impact; irrelevant on PHP 5.4+)
 
 - 'sqlite' database driver (no longer shipped with PHP 5.4+; 'sqlite3' is still available)
-
-- ``CI_Input::is_cli_request()`` (use :php:func:`is_cli()` instead)
-- ``CI_Config::system_url()`` (encourages insecure practices)
-- ``CI_Form_validation::prep_for_form()`` (the *prep_for_form* rule)
-
-- ``standard_date()`` :doc:`Date Helper <../helpers/date_helper>` function (use ``date()`` instead)
-- ``nice_date()`` :doc:`Date Helper <../helpers/date_helper>` function (use ``DateTime::format()`` instead)
-- ``do_hash()`` :doc:`Security Helper <../helpers/security_helper>` function (use ``hash()`` instead)
-- ``br()`` :doc:`HTML Helper <../helpers/html_helper>` function (use ``str_repeat()`` with ``'<br />'`` instead)
-- ``nbs()`` :doc:`HTML Helper <../helpers/html_helper>` function (use ``str_repeat()`` with ``'&nbsp;'`` instead)
-- ``trim_slashes()`` :doc:`String Helper <../helpers/string_helper>` function (use ``trim()`` with ``'/'`` instead)
-- ``repeater()`` :doc:`String Helper <../helpers/string_helper>` function (use ``str_repeat()`` instead)
-- ``form_prep()`` :doc:`Form Helper <../helpers/form_helper>` function (use :php:func:`html_escape()` instead)
 
 - The entire *Encrypt Library* (the newer :doc:`Encryption Library <../libraries/encryption>` is still available)
 - The entire *Javascript Library* (it was always experimental in the first place)
@@ -238,14 +235,12 @@ The ``$curs_id`` property is also removed.
 If you were using those, you can create your own cursors via ``oci_new_cursor()``
 and the publicly accessible ``$conn_id``.
 
-Stop 14: Replace $config['log_file_extension'] with $config['log_filename'] in application/config/config.php
-============================================================================================================
+Step 14: Check log filename configuration in application/config/config.php
+==========================================================================
 
 You can now specify the full log filename via ``$config['log_filename']``.
 Add this configuration option to your **application/config/config.php**,
 if you haven't copied the new one over.
 
-The previously existing ``$config['log_file_extension']`` option has been
-removed and no longer works. However, its functionality is essentially
-integrated into the new ``$config['log_filename']``, since it includes the
-filename extension in itself.
+The ``$config['log_file_extension']`` option still works as a fallback,
+but ``$config['log_filename']`` takes precedence when set.
