@@ -358,6 +358,12 @@ class CI_Pagination {
 	 */
 	public function initialize(array $params = array())
 	{
+		if (isset($params['anchor_class']))
+		{
+			empty($params['anchor_class']) OR $params['attributes']['class'] = $params['anchor_class'];
+			unset($params['anchor_class']);
+		}
+
 		if (isset($params['attributes']) && is_array($params['attributes']))
 		{
 			$this->_parse_attributes($params['attributes']);
