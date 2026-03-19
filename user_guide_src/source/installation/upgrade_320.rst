@@ -191,10 +191,6 @@ CodeIgniter versions that have been removed in 3.2+:
 - The entire *Javascript Library* (it was always experimental in the first place)
 - The entire *Smiley Helper* (an archived version is available on GitHub: `bcit-ci/ci3-smiley-helper <https://github.com/bcit-ci/ci3-smiley-helper>`_)
 
-- The ``$_after`` parameter from :doc:`Database Forge <../database/forge>` method ``add_column()``.
-- The ``anchor_class`` option from :doc:`Pagination Library <../libraries/pagination>` (use ``class`` instead).
-- The ``unique`` and ``encrypt`` options from :doc:`String Helper <../helpers/string_helper>` function ``random_string()``.
-- The ``underscore`` and ``dash`` options from :doc:`URL Helper <../helpers/url_helper>`` function :php:func:`url_title()`.
 - The ``$img_path``, ``$img_url`` and ``$font_path`` parameters from
   :doc:`CAPCHA Helper <../helpers/captcha_helper>` function :php:func:`create_captcha()` (pass as array options instead).
 
