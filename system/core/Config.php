@@ -326,6 +326,20 @@ class CI_Config {
 	// -------------------------------------------------------------
 
 	/**
+	 * System URL
+	 *
+	 * @deprecated	3.0.0
+	 * @return	string
+	 */
+	public function system_url()
+	{
+		$x = explode('/', preg_replace('|/*(.+?)/*$|', '\\1', BASEPATH));
+		return $this->slash_item('base_url').end($x).'/';
+	}
+
+	// -------------------------------------------------------------
+
+	/**
 	 * Build URI string
 	 *
 	 * @used-by	CI_Config::site_url()
