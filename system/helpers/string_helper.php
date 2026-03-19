@@ -50,6 +50,32 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 // ------------------------------------------------------------------------
 
+if ( ! function_exists('trim_slashes'))
+{
+	/**
+	 * Trim Slashes
+	 *
+	 * Removes any leading/trailing slashes from a string:
+	 *
+	 * /this/that/theother/
+	 *
+	 * becomes:
+	 *
+	 * this/that/theother
+	 *
+	 * @deprecated	3.0.0	This is just an alias for PHP's native trim()
+	 *
+	 * @param	string
+	 * @return	string
+	 */
+	function trim_slashes($str)
+	{
+		return trim($str, '/');
+	}
+}
+
+// ------------------------------------------------------------------------
+
 if ( ! function_exists('strip_slashes'))
 {
 	/**
@@ -252,5 +278,24 @@ if ( ! function_exists('alternator'))
 
 		$args = func_get_args();
 		return $args[($i++ % count($args))];
+	}
+}
+
+// ------------------------------------------------------------------------
+
+if ( ! function_exists('repeater'))
+{
+	/**
+	 * Repeater function
+	 *
+	 * @deprecated	3.0.0	Use PHP's native str_repeat() instead
+	 *
+	 * @param	string	$data	String to repeat
+	 * @param	int	$num	Number of repeats
+	 * @return	string
+	 */
+	function repeater($data, $num = 1)
+	{
+		return ($num > 0) ? str_repeat($data, $num) : '';
 	}
 }
