@@ -187,9 +187,7 @@ CodeIgniter versions that have been removed in 3.2+:
 
 - 'sqlite' database driver (no longer shipped with PHP 5.4+; 'sqlite3' is still available)
 
-- The entire *Encrypt Library* (the newer :doc:`Encryption Library <../libraries/encryption>` is still available)
-- The entire *Javascript Library* (it was always experimental in the first place)
-- The entire *Smiley Helper* (an archived version is available on GitHub: `bcit-ci/ci3-smiley-helper <https://github.com/bcit-ci/ci3-smiley-helper>`_)
+- The entire *Encrypt Library* (the newer :doc:`Encryption Library <../libraries/encryption>` is still available; the old Encrypt library depends on MCrypt which was removed from PHP in 7.2)
 
 - The ``$img_path``, ``$img_url`` and ``$font_path`` parameters from
   :doc:`CAPCHA Helper <../helpers/captcha_helper>` function :php:func:`create_captcha()` (pass as array options instead).
