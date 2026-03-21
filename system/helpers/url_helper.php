@@ -478,6 +478,15 @@ if ( ! function_exists('url_title'))
 	 */
 	function url_title($str, $separator = '-', $lowercase = FALSE)
 	{
+		if ($separator === 'dash')
+		{
+			$separator = '-';
+		}
+		elseif ($separator === 'underscore')
+		{
+			$separator = '_';
+		}
+
 		$q_separator = preg_quote($separator, '#');
 
 		$trans = array(
