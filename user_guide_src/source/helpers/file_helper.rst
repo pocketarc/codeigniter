@@ -113,6 +113,10 @@ The following functions are available:
 	if forced by sending the second parameter to FALSE, as this can be an intensive
 	operation.
 
+	Array keys are the file paths relative to ``$source_dir``. For a top-level read that
+	is the filename; a recursive read keys files in sub-folders by their sub-path, e.g.
+	``blog/post.php`` (``blog\post.php`` on Windows).
+
 	Example::
 
 		$models_info = get_dir_file_info(APPPATH.'models/');
