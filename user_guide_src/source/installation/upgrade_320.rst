@@ -238,3 +238,28 @@ if you haven't copied the new one over.
 
 The ``$config['log_file_extension']`` option still works as a fallback,
 but ``$config['log_filename']`` takes precedence when set.
+
+Step 15: Check recursive usage of get_dir_file_info()
+=====================================================
+
+In 3.1.x, the :doc:`File Helper <../helpers/file_helper>` function
+:php:func:`get_dir_file_info()` used to key its output by filename. When
+reading recursively (by passing FALSE as the second parameter), two files
+with the same name in different sub-folders collided, and only the last one
+read was kept.
+
+Output is now keyed by each file's path relative to ``$source_dir``::
+
+	// A directory containing config.php and cache/config.php
+	$info = get_dir_file_info('./path/to/directory/', FALSE);
+
+	// 3.1.x: array('config.php' => ...)
+	// now:   array('config.php' => ..., 'cache/config.php' => ...)
+
+For a top-level read (the default), a file's relative path is its filename,
+so those keys are unchanged. Only code that reads recursively and looks up
+entries by key needs review.
+
+.. note:: In 3.2-dev, this function was broken and returned entries holding
+	only a ``relative_path`` key, so there is nothing to migrate if you are
+	coming from there.
