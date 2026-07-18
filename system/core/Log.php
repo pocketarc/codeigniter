@@ -231,7 +231,7 @@ class CI_Log {
 
 		$message .= $this->_format_line($level, $date, $msg);
 
-		for ($written = 0, $length = self::strlen($message); $written < $length; $written += $result)
+		for ($result = $written = 0, $length = self::strlen($message); $written < $length; $written += $result)
 		{
 			if (($result = fwrite($fp, self::substr($message, $written))) === FALSE)
 			{

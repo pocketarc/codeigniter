@@ -92,4 +92,25 @@ class Log_test extends CI_TestCase {
 			"LEVEL - Timestamp --> Message".PHP_EOL
 		);
 	}
+
+	public function test_write_log_with_empty_message()
+	{
+		$this->ci_set_config('log_path', '');
+		$this->ci_set_config('log_threshold', 4);
+		$this->ci_set_config('log_filename', 'empty.log');
+		$instance = new Log_empty_format_stub();
+
+		// _format_line() is overridden to return '', so $message is empty and the
+		// write loop never runs. Without $result initialised, is_int($result) returns FALSE,
+		// and write_log() wrongly returns FALSE.
+		$this->assertTrue($instance->write_log('error', 'discarded'));
+	}
+}
+
+class Log_empty_format_stub extends CI_Log {
+
+	protected function _format_line($level, $date, $message)
+	{
+		return '';
+	}
 }
