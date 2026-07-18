@@ -122,4 +122,24 @@ class UserAgent_test extends CI_TestCase {
 		$this->assertTrue($this->agent->is_mobile('android'));
 	}
 
+	public function test_edge()
+	{
+		// Chromium Edge's UA also contains "Chrome/", so without an "Edg" match
+		// it's detected as Chrome.
+		$this->agent->parse('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59');
+		$this->assertEquals('Edge', $this->agent->browser());
+		$this->assertEquals('91.0.864.59', $this->agent->version());
+
+		// Legacy Edge sends "Edge/", which contains "Edg", so it must not be
+		// caught by the Chromium "Edg" rule.
+		$this->agent->parse('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.18363');
+		$this->assertEquals('Edge Legacy', $this->agent->browser());
+		$this->assertEquals('18.18363', $this->agent->version());
+
+		// Mobile Edge tokens ("EdgA" on Android, "EdgiOS" on iOS) omit the "e",
+		// so only the "Edg" rule can catch them.
+		$this->agent->parse('Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 EdgA/120.0.0.0');
+		$this->assertEquals('Edge', $this->agent->browser());
+	}
+
 }
