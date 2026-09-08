@@ -97,4 +97,9 @@ class CI_SessionWrapper implements SessionHandlerInterface, SessionUpdateTimesta
 	{
 		return $this->driver->validateId($id);
 	}
+
+	public function create_sid(): string
+	{
+		return session_create_id();
+	}
 }
