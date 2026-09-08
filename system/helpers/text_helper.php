@@ -343,12 +343,12 @@ if ( ! function_exists('highlight_code'))
 		$str = preg_replace(
 			array(
 				'/<span style="color: #([A-Z0-9]+)">&lt;\?php(&nbsp;| )/i',
-				'/(<span style="color: #[A-Z0-9]+">.*?)\?&gt;<\/span>\n<\/span>\n<\/code>/is',
+				'/(<span style="color: #[A-Z0-9]+">.*?)\?&gt;<\/span>(\n<\/span>\n<\/code>|<\/code><\/pre>)/is',
 				'/<span style="color: #[A-Z0-9]+"\><\/span>/i'
 			),
 			array(
 				'<span style="color: #$1">',
-				"$1</span>\n</span>\n</code>",
+				'$1</span>$2',
 				''
 			),
 			$str
