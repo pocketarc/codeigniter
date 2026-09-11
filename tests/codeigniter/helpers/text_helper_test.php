@@ -104,7 +104,7 @@ class Text_helper_test extends CI_TestCase {
 		// PHP 8.3 changed highlight_string() output format
 		if (PHP_VERSION_ID >= 80300)
 		{
-			$expect = "<pre><code style=\"color: #000000\"><span style=\"color: #0000BB\">&lt;?php var_dump</span><span style=\"color: #007700\">(</span><span style=\"color: #0000BB\">\$this</span><span style=\"color: #007700\">); </span><span style=\"color: #0000BB\">?&gt; ?&gt;</span></code></pre>";
+			$expect = "<pre><code style=\"color: #000000\"><span style=\"color: #0000BB\">&lt;?php var_dump</span><span style=\"color: #007700\">(</span><span style=\"color: #0000BB\">\$this</span><span style=\"color: #007700\">); </span><span style=\"color: #0000BB\">?&gt; </span></code></pre>";
 		}
 		else
 		{
@@ -112,6 +112,18 @@ class Text_helper_test extends CI_TestCase {
 		}
 
 		$this->assertEquals($expect, highlight_code('<?php var_dump($this); ?>'));
+
+		// Test code without PHP tags (e.g. database queries in profiler)
+		if (PHP_VERSION_ID >= 80300)
+		{
+			$expect_query = "<pre><code style=\"color: #000000\"><span style=\"color: #0000BB\">SELECT </span><span style=\"color: #007700\">* </span><span style=\"color: #0000BB\">FROM users</span><span style=\"color: #007700\">; </span></code></pre>";
+		}
+		else
+		{
+			$expect_query = "<code><span style=\"color: #000000\">\n<span style=\"color: #0000BB\">SELECT&nbsp;</span><span style=\"color: #007700\">*&nbsp;</span><span style=\"color: #0000BB\">FROM&nbsp;users</span><span style=\"color: #007700\">;&nbsp;</span>\n</span>\n</code>";
+		}
+
+		$this->assertEquals($expect_query, highlight_code('SELECT * FROM users;'));
 	}
 
 	// ------------------------------------------------------------------------
