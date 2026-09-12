@@ -15,10 +15,27 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php: [ '8.5', '8.4', '8.3', '8.2', '8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6', '5.5', '5.4' ]
+                php: [ '8.6', '8.5', '8.4', '8.3', '8.2', '8.1', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6', '5.5', '5.4' ]
                 DB: [ 'pdo/mysql', 'pdo/pgsql', 'pdo/sqlite', 'mysqli', 'pgsql', 'sqlite' ]
                 compiler: [ default ]
                 include:
+                    -   php: '8.6'
+                        DB: 'pdo/mysql'
+                        compiler: jit
+                    -   php: '8.6'
+                        DB: 'pdo/pgsql'
+                        compiler: jit
+                    -   php: '8.6'
+                        DB: 'pdo/sqlite'
+                        compiler: jit
+                    -   php: '8.6'
+                        DB: 'mysqli'
+                        compiler: jit
+                    -   php: '8.6'
+                        DB: 'pgsql'
+                        compiler: jit
+                    -   php: '8.6'
+                        DB: 'sqlite'
                     -   php: '8.5'
                         DB: 'pdo/mysql'
                         compiler: jit
@@ -161,14 +178,14 @@ jobs:
                 uses: actions/checkout@v4
             -   name: Override PHP ini values for JIT compiler
                 if: matrix.compiler == 'jit'
-                run: echo "PHP_INI_VALUES::assert.exception=1, zend.assertions=1, opcache.enable=1, opcache.enable_cli=1, opcache.optimization_level=-1, opcache.jit=1255, opcache.jit_buffer_size=64M" >> $GITHUB_ENV
+                run: echo "PHP_INI_VALUES=assert.exception=1, zend.assertions=1, opcache.enable=1, opcache.enable_cli=1, opcache.optimization_level=-1, opcache.jit=1255, opcache.jit_buffer_size=64M" >> $GITHUB_ENV
 
             -   name: Install PHP${{ matrix.php }} - DB ${{ matrix.DB }}
                 uses: shivammathur/setup-php@v2
                 with:
                     php-version: ${{ matrix.php }}
                     tools: composer, pecl
-                    extensions: imagick, sqlite3, pgsql, mysqli, pdo, pdo_mysql, pdo_pgsql, pdo_sqlite, mbstring
+                    extensions: sqlite3, pgsql, mysqli, pdo, pdo_mysql, pdo_pgsql, pdo_sqlite, mbstring
                     ini-values: ${{ env.PHP_INI_VALUES }}
                     coverage: xdebug
 
@@ -179,7 +196,7 @@ jobs:
                 uses: actions/cache@v4
                 with:
                     path: ${{ steps.composer-cache.outputs.dir }}
-                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                    key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
                     restore-keys: ${{ runner.os }}-composer-
             -   name: Install composer dependencies
                 run: composer install --no-progress --prefer-dist --optimize-autoloader
