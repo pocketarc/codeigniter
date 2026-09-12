@@ -8,8 +8,8 @@ What is this repository?
    :target: https://github.com/pocketarc/codeigniter/actions/workflows/test-phpunit.yml
    :alt: PHPUnit Tests
 
-.. |php| image:: https://img.shields.io/badge/PHP-5.4%20--%208.5-8892BF?logo=php
-   :alt: PHP 5.4 - 8.5
+.. |php| image:: https://img.shields.io/badge/PHP-5.4%20--%208.6-8892BF?logo=php
+   :alt: PHP 5.4 - 8.6
 
 .. |version| image:: https://img.shields.io/packagist/v/pocketarc/codeigniter
    :target: https://packagist.org/packages/pocketarc/codeigniter
@@ -26,7 +26,8 @@ This is a fork of CodeIgniter 3, with the goal of keeping it up to date with mod
 - ✅ PHP 8.2
 - ✅ PHP 8.3
 - ✅ PHP 8.4
-- ✅ PHP 8.5 (and beyond as they are released)
+- ✅ PHP 8.5
+- ✅ PHP 8.6 (and beyond as they are released)
 
 The original CodeIgniter 3.x branch is no longer maintained, and has not been updated to work with PHP 8.2, or any newer version. This fork is intended to fill that gap.
 

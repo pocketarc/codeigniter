@@ -1,5 +1,5 @@
 {
-	"description": "Actively maintained CodeIgniter 3 fork with support for PHP 5.4 - PHP 8.5 (and beyond). Fully backward compatible.",
+	"description": "Actively maintained CodeIgniter 3 fork with support for PHP 5.4 - PHP 8.6 (and beyond). Fully backward compatible.",
 	"name": "pocketarc/codeigniter",
 	"type": "project",
 	"homepage": "https://github.com/pocketarc/codeigniter",
@@ -19,10 +19,10 @@
 			"phpunit --color=always --coverage-text --configuration tests/travis/sqlite.phpunit.xml"
 		],
 		"post-install-cmd": [
-			"sed -i s/name{0}/name[0]/ vendor/mikey179/vfsstream/src/main/php/org/bovigo/vfs/vfsStream.php"
+			"@php tests/patch-vendor.php"
 		],
 		"post-update-cmd": [
-			"sed -i s/name{0}/name[0]/ vendor/mikey179/vfsstream/src/main/php/org/bovigo/vfs/vfsStream.php"
+			"@php tests/patch-vendor.php"
 		]
 	},
 	"require-dev": {
