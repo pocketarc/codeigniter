@@ -261,7 +261,10 @@ class CI_Xmlrpcs extends CI_Xmlrpc {
 				sprintf('XML error: %s at line %d',
 				xml_error_string(xml_get_error_code($parser)),
 				xml_get_current_line_number($parser)));
-			xml_parser_free($parser);
+			if (PHP_VERSION_ID < 80000)
+			{
+				xml_parser_free($parser);
+			}
 		}
 		elseif ($parser_object->xh['isf'])
 		{
@@ -269,7 +272,10 @@ class CI_Xmlrpcs extends CI_Xmlrpc {
 		}
 		else
 		{
-			xml_parser_free($parser);
+			if (PHP_VERSION_ID < 80000)
+			{
+				xml_parser_free($parser);
+			}
 
 			$m = new XML_RPC_Message($parser_object->xh['method']);
 			$plist = '';
