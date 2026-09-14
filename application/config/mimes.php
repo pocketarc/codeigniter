@@ -116,7 +116,7 @@ return array(
 	'word'	=>	array('application/msword', 'application/octet-stream'),
 	'xl'	=>	'application/excel',
 	'eml'	=>	'message/rfc822',
-	'json'  =>	array('application/json', 'text/json'),
+	'json'  =>	array('application/json', 'text/json', 'text/plain'),
 	'pem'   =>	array('application/x-x509-user-cert', 'application/x-pem-file', 'application/octet-stream'),
 	'p10'   =>	array('application/x-pkcs10', 'application/pkcs10'),
 	'p12'   =>	'application/x-pkcs12',

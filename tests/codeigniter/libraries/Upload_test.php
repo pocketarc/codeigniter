@@ -195,6 +195,15 @@ class Upload_test extends CI_TestCase {
 		$this->assertTrue($this->upload->is_allowed_filetype(FALSE));
 		$this->assertTrue($this->upload->is_allowed_filetype(TRUE));
 
+		$this->upload->allowed_types = array('json');
+		$this->upload->file_ext = '.json';
+		$this->upload->file_type = 'application/json';
+		$this->assertTrue($this->upload->is_allowed_filetype(FALSE));
+
+		$this->upload->file_type = 'text/plain';
+		$this->assertTrue($this->upload->is_allowed_filetype(FALSE));
+
+		$this->upload->allowed_types = array('html', 'gif');
 		$this->upload->file_temp = realpath(PROJECT_BASE.'tests/mocks/uploads/ci_logo.gif');
 		$this->upload->file_ext = '.gif';
 		$this->upload->file_type = 'image/gif';
