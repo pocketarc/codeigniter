@@ -57,11 +57,11 @@ class CI_Log {
 	protected $_log_path;
 
 	/**
-	 * Log filename
+	 * Logging configuration
 	 *
-	 * @var string
+	 * @var array
 	 */
-	protected $_log_filename;
+	protected $_config = array();
 
 	/**
 	 * File permissions
@@ -121,26 +121,13 @@ class CI_Log {
 	 */
 	public function __construct()
 	{
-		$config =& get_config();
+		$this->_config =& get_config();
+		$config = $this->_config;
 
 		isset(self::$func_overload) OR self::$func_overload = ( ! is_php('8.0') && extension_loaded('mbstring') && @ini_get('mbstring.func_overload'));
 
 		$this->_log_path = ($config['log_path'] !== '')
 			? rtrim($config['log_path'], '/\\').DIRECTORY_SEPARATOR : APPPATH.'logs'.DIRECTORY_SEPARATOR;
-
-		if (isset($config['log_filename']) && $config['log_filename'] !== '')
-		{
-			$this->_log_filename = $config['log_filename'];
-		}
-		elseif (isset($config['log_file_extension']) && $config['log_file_extension'] !== '')
-		{
-			$ext = ltrim($config['log_file_extension'], '.');
-			$this->_log_filename = 'log-'.date('Y-m-d').'.'.$ext;
-		}
-		else
-		{
-			$this->_log_filename = 'log-'.date('Y-m-d').'.php';
-		}
 
 		file_exists($this->_log_path) OR mkdir($this->_log_path, 0755, TRUE);
 
@@ -196,14 +183,15 @@ class CI_Log {
 			return FALSE;
 		}
 
-		$filepath = $this->_log_path.$this->_log_filename;
+		$log_filename = $this->_get_log_filename();
+		$filepath = $this->_log_path.$log_filename;
 		$message = '';
 
 		if ( ! file_exists($filepath))
 		{
 			$newfile = TRUE;
 			// Only add protection to php files
-			if (substr($this->_log_filename, -3, 3) === 'php')
+			if (substr($log_filename, -3, 3) === 'php')
 			{
 				$message .= "<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>\n\n";
 			}
@@ -221,7 +209,7 @@ class CI_Log {
 		{
 			$microtime_full = microtime(TRUE);
 			$microtime_short = sprintf("%06d", ($microtime_full - floor($microtime_full)) * 1000000);
-			$date = new DateTime(date('Y-m-d H:i:s.'.$microtime_short, $microtime_full));
+			$date = new DateTime(date('Y-m-d H:i:s.'.$microtime_short, (int) $microtime_full));
 			$date = $date->format($this->_date_fmt);
 		}
 		else
@@ -248,6 +236,29 @@ class CI_Log {
 		}
 
 		return is_int($result);
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Get the log filename
+	 *
+	 * Resolved on every write so daily filenames rotate in long-running processes
+	 *
+	 * @return	string
+	 */
+	protected function _get_log_filename()
+	{
+		if (isset($this->_config['log_filename']) && $this->_config['log_filename'] !== '')
+		{
+			return $this->_config['log_filename'];
+		}
+
+		$ext = (isset($this->_config['log_file_extension']) && $this->_config['log_file_extension'] !== '')
+			? ltrim($this->_config['log_file_extension'], '.')
+			: 'php';
+
+		return 'log-'.date('Y-m-d').'.'.$ext;
 	}
 
 	// --------------------------------------------------------------------
