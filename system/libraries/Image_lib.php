@@ -822,7 +822,7 @@ class CI_Image_lib {
 
 		$dst_img = $create($this->width, $this->height);
 
-		if ($this->image_type === 3) // png we can actually preserve transparency
+		if ($this->image_type === 3 OR $this->image_type === 18) // PNG and WebP can preserve transparency
 		{
 			imagealphablending($dst_img, FALSE);
 			imagesavealpha($dst_img, TRUE);
