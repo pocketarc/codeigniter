@@ -587,6 +587,8 @@ class CI_Form_validation {
 	/**
 	 * Re-populate the _POST array with our finalized and processed data
 	 *
+	 * Arrays require bracket notation or an explicit is_array rule.
+	 *
 	 * @return	void
 	 */
 	protected function _reset_data_array(&$data)
@@ -597,7 +599,7 @@ class CI_Form_validation {
 			{
 				if ($row['is_array'] === FALSE)
 				{
-					isset($data[$field]) && $data[$field] = is_array($row['postdata']) ? NULL : $row['postdata'];
+					isset($data[$field]) && $data[$field] = (is_array($row['postdata']) && ! in_array('is_array', $row['rules'], TRUE)) ? NULL : $row['postdata'];
 				}
 				else
 				{
