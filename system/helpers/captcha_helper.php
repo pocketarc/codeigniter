@@ -134,7 +134,9 @@ if ( ! function_exists('create_captcha'))
 			$current_dir = @opendir($img_path);
 			while ($filename = @readdir($current_dir))
 			{
-				if (preg_match('#^(?<ts>\d{10})\.png$#', $filename, $match) && ($match['ts'] + $expiration) < $now)
+				// A comma separator may exist in files written by PHP < 8.0 under a locale such as de_DE
+				if (preg_match('#^(?<ts>\d{10}(?:[.,]\d+)?)\.(?:png|jpg)$#i', $filename, $match)
+					&& ((float) strtr($match['ts'], ',', '.') + $expiration) < $now)
 				{
 					@unlink($img_path.$filename);
 				}
@@ -143,7 +145,8 @@ if ( ! function_exists('create_captcha'))
 			@closedir($current_dir);
 
 			// This variable will later be used later to determine whether we write to disk or output a data:image URI
-			$img_filename = $now.'.png';
+			// %F is locale-independent, unlike float-to-string conversion on PHP < 8.0
+			$img_filename = sprintf('%.6F', $now).'.png';
 		}
 		else
 		{
