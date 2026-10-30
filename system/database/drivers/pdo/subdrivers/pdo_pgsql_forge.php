@@ -156,7 +156,8 @@ class CI_DB_pdo_pgsql_forge extends CI_DB_pdo_forge {
 			if ( ! empty($field[$i]['comment']))
 			{
 				$sqls[] = 'COMMENT ON COLUMN '
-					.$this->db->escape_identifiers($table).'.'.$this->db->escape_identifiers($field[$i]['name'])
+					.$this->db->escape_identifiers($table).'.'
+					.$this->db->escape_identifiers( ! empty($field[$i]['new_name']) ? $field[$i]['new_name'] : $field[$i]['name'])
 					.' IS '.$field[$i]['comment'];
 			}
 		}
