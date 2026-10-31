@@ -138,11 +138,12 @@ class CI_Session_redis_driver extends CI_Session_driver implements CI_Session_dr
 		{
 			$save_path = array('path' => $matches[1]);
 		}
-		elseif (preg_match('#(?:(?:tcp|tls)://)?([^:?]+)(?:\:(\d+))?(?<options>\?.+)?#', $this->_config['save_path'], $matches))
+		elseif (preg_match('#^(?:(tcp|tls|ssl)://)?([^:?]+)(?:\:(\d+))?(?<options>\?.+)?#', $this->_config['save_path'], $matches))
 		{
+			// phpredis needs the tls:// or ssl:// scheme in the host to enable encryption; tcp:// is the default
 			$save_path = array(
-				'host'    => $matches[1],
-				'port'    => empty($matches[2]) ? NULL : $matches[2],
+				'host'    => (in_array($matches[1], array('tls', 'ssl'), TRUE) ? $matches[1].'://' : '').$matches[2],
+				'port'    => empty($matches[3]) ? NULL : $matches[3],
 				'timeout' => 0.0 // We always pass this to Redis::connect(), so it needs to exist
 			);
 		}
