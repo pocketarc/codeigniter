@@ -57,11 +57,18 @@ class CI_Log {
 	protected $_log_path;
 
 	/**
-	 * Logging configuration
+	 * Custom log filename, or an empty string for automatic daily filenames
 	 *
-	 * @var array
+	 * @var string
 	 */
-	protected $_config = array();
+	protected $_log_filename = '';
+
+	/**
+	 * Extension for automatically generated log filenames
+	 *
+	 * @var string
+	 */
+	protected $_log_file_extension = 'php';
 
 	/**
 	 * File permissions
@@ -121,13 +128,21 @@ class CI_Log {
 	 */
 	public function __construct()
 	{
-		$this->_config =& get_config();
-		$config = $this->_config;
+		$config =& get_config();
 
 		isset(self::$func_overload) OR self::$func_overload = ( ! is_php('8.0') && extension_loaded('mbstring') && @ini_get('mbstring.func_overload'));
 
 		$this->_log_path = ($config['log_path'] !== '')
 			? rtrim($config['log_path'], '/\\').DIRECTORY_SEPARATOR : APPPATH.'logs'.DIRECTORY_SEPARATOR;
+
+		if (isset($config['log_filename']) && $config['log_filename'] !== '')
+		{
+			$this->_log_filename = $config['log_filename'];
+		}
+		elseif (isset($config['log_file_extension']) && $config['log_file_extension'] !== '')
+		{
+			$this->_log_file_extension = ltrim($config['log_file_extension'], '.');
+		}
 
 		file_exists($this->_log_path) OR mkdir($this->_log_path, 0755, TRUE);
 
@@ -243,22 +258,18 @@ class CI_Log {
 	/**
 	 * Get the log filename
 	 *
-	 * Resolved on every write so daily filenames rotate in long-running processes
+	 * Rotate automatic filenames on every write, preserving subclass overrides
 	 *
 	 * @return	string
 	 */
 	protected function _get_log_filename()
 	{
-		if (isset($this->_config['log_filename']) && $this->_config['log_filename'] !== '')
+		if ($this->_log_filename !== '')
 		{
-			return $this->_config['log_filename'];
+			return $this->_log_filename;
 		}
 
-		$ext = (isset($this->_config['log_file_extension']) && $this->_config['log_file_extension'] !== '')
-			? ltrim($this->_config['log_file_extension'], '.')
-			: 'php';
-
-		return 'log-'.date('Y-m-d').'.'.$ext;
+		return 'log-'.date('Y-m-d').'.'.$this->_log_file_extension;
 	}
 
 	// --------------------------------------------------------------------
