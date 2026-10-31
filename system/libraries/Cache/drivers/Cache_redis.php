@@ -261,7 +261,15 @@ class CI_Cache_redis extends CI_Driver
 	 */
 	public function increment($id, $offset = 1)
 	{
-		return $this->_redis->incrBy($id, $offset);
+		$value = $this->_redis->hIncrBy($id, '__ci_value', $offset);
+
+		if ($value !== FALSE)
+		{
+			$this->_redis->hSet($id, '__ci_type', 'integer');
+			return $value;
+		}
+
+		return FALSE;
 	}
 
 	// ------------------------------------------------------------------------
@@ -275,7 +283,15 @@ class CI_Cache_redis extends CI_Driver
 	 */
 	public function decrement($id, $offset = 1)
 	{
-		return $this->_redis->decrBy($id, $offset);
+		$value = $this->_redis->hIncrBy($id, '__ci_value', -$offset);
+
+		if ($value !== FALSE)
+		{
+			$this->_redis->hSet($id, '__ci_type', 'integer');
+			return $value;
+		}
+
+		return FALSE;
 	}
 
 	// ------------------------------------------------------------------------
