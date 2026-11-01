@@ -1354,24 +1354,23 @@ abstract class CI_DB_driver {
 			return $item;
 		}
 
-		static $preg_ec;
-
-		if (empty($preg_ec))
+		if (is_array($this->_escape_char))
 		{
-			if (is_array($this->_escape_char))
-			{
-				$preg_ec = array(
-					preg_quote($this->_escape_char[0]),
-					preg_quote($this->_escape_char[1]),
-					$this->_escape_char[0],
-					$this->_escape_char[1]
-				);
-			}
-			else
-			{
-				$preg_ec[0] = $preg_ec[1] = preg_quote($this->_escape_char);
-				$preg_ec[2] = $preg_ec[3] = $this->_escape_char;
-			}
+			$preg_ec = array(
+				preg_quote($this->_escape_char[0]),
+				preg_quote($this->_escape_char[1]),
+				$this->_escape_char[0],
+				$this->_escape_char[1]
+			);
+		}
+		else
+		{
+			$preg_ec = array(
+				preg_quote($this->_escape_char),
+				preg_quote($this->_escape_char),
+				$this->_escape_char,
+				$this->_escape_char
+			);
 		}
 
 		foreach ($this->_reserved_identifiers as $id)
@@ -1503,30 +1502,24 @@ abstract class CI_DB_driver {
 	 */
 	protected function _get_operator($str)
 	{
-		static $_operators;
-
-		if (empty($_operators))
-		{
-			$_les = ($this->_like_escape_str !== '')
-				? '\s+'.preg_quote(trim(sprintf($this->_like_escape_str, $this->_like_escape_chr)), '/')
-				: '';
-			$_operators = array(
-				'\s*(?:<|>|!)?=\s*',             // =, <=, >=, !=
-				'\s*<>?\s*',                     // <, <>
-				'\s*>\s*',                       // >
-				'\s+IS NULL',                    // IS NULL
-				'\s+IS NOT NULL',                // IS NOT NULL
-				'\s+EXISTS\s*\(.*\)',        // EXISTS(sql)
-				'\s+NOT EXISTS\s*\(.*\)',    // NOT EXISTS(sql)
-				'\s+BETWEEN\s+',                 // BETWEEN value AND value
-				'\s+NOT BETWEEN\s+',             // NOT BETWEEN value AND value
-				'\s+IN\s*\(.*\)',            // IN(list)
-				'\s+NOT IN\s*\(.*\)',        // NOT IN (list)
-				'\s+LIKE\s+\S.*('.$_les.')?',    // LIKE 'expr'[ ESCAPE '%s']
-				'\s+NOT LIKE\s+\S.*('.$_les.')?' // NOT LIKE 'expr'[ ESCAPE '%s']
-			);
-
-		}
+		$_les = ($this->_like_escape_str !== '')
+			? '\s+'.preg_quote(trim(sprintf($this->_like_escape_str, $this->_like_escape_chr)), '/')
+			: '';
+		$_operators = array(
+			'\s*(?:<|>|!)?=\s*',             // =, <=, >=, !=
+			'\s*<>?\s*',                     // <, <>
+			'\s*>\s*',                       // >
+			'\s+IS NULL',                    // IS NULL
+			'\s+IS NOT NULL',                // IS NOT NULL
+			'\s+EXISTS\s*\(.*\)',        // EXISTS(sql)
+			'\s+NOT EXISTS\s*\(.*\)',    // NOT EXISTS(sql)
+			'\s+BETWEEN\s+',                 // BETWEEN value AND value
+			'\s+NOT BETWEEN\s+',             // NOT BETWEEN value AND value
+			'\s+IN\s*\(.*\)',            // IN(list)
+			'\s+NOT IN\s*\(.*\)',        // NOT IN (list)
+			'\s+LIKE\s+\S.*('.$_les.')?',    // LIKE 'expr'[ ESCAPE '%s']
+			'\s+NOT LIKE\s+\S.*('.$_les.')?' // NOT LIKE 'expr'[ ESCAPE '%s']
+		);
 
 		return preg_match('/'.implode('|', $_operators).'/i', $str, $match)
 			? $match[0] : FALSE;
