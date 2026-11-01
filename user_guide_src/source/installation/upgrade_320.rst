@@ -239,6 +239,13 @@ if you haven't copied the new one over.
 The ``$config['log_file_extension']`` option still works as a fallback,
 but ``$config['log_filename']`` takes precedence when set.
 
+Filename settings are captured when the logger is constructed. Default
+date-based filenames rotate daily, even in long-running processes; custom
+filenames remain fixed. The protected ``$_log_filename`` property remains
+available for subclasses. It holds the custom filename, or an empty string
+for automatic naming; ``_get_log_filename()`` returns the resolved filename.
+Assigning a custom filename prevents automatic rotation.
+
 Step 15: Check recursive usage of get_dir_file_info()
 =====================================================
 

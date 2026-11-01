@@ -233,6 +233,8 @@ $config['log_path'] = '';
 |
 | Leave this BLANK unless you would like to set something other than the default
 | 'log-'.date('Y-m-d').'.php'. No DIRECTORY_SEPARATOR(s), just the filename.
+| Default filenames rotate daily, including in long-running processes.
+| A custom filename stays fixed. Filename settings are read at construction.
 |
 */
 $config['log_filename'] = '';
