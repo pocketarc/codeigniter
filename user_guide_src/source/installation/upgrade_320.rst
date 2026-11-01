@@ -270,3 +270,9 @@ entries by key needs review.
 .. note:: In 3.2-dev, this function was broken and returned entries holding
 	only a ``relative_path`` key, so there is nothing to migrate if you are
 	coming from there.
+
+Step 16: Replace config/user_agents.php and config/mimes.php
+============================================================
+
+These config files have received some updates. Please copy them to
+*application/config/user_agents.php* and *application/config/mimes.php*.
