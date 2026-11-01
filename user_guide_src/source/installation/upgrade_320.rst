@@ -323,3 +323,9 @@ Since 3.2-dev, ``create_captcha()`` always writes PNG files; 3.1.x used
 JPEG when ``imagejpeg()`` was available. Replace filenames built from
 ``$cap['time']`` plus ``.jpg`` with the returned ``$cap['filename']``,
 which contains the exact filename (``$cap['time']`` plus ``.png``).
+
+Omitting both ``img_path`` and ``img_url`` returns the image inline as a
+``data:image/png;base64,...`` URI again, as described in the CAPTCHA helper
+documentation. This mode was added in 3.2-dev in 2017, but a 2020 merge
+accidentally disabled it, causing ``create_captcha()`` to return ``FALSE``
+instead.

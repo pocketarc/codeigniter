@@ -147,6 +147,20 @@ class Captcha_helper_test extends CI_TestCase {
 
 	// --------------------------------------------------------------------
 
+	public function test_create_captcha_returns_data_uri_without_paths()
+	{
+		$captcha = create_captcha(array('word' => 'test'));
+
+		$this->assertTrue(is_array($captcha));
+		$this->assertNull($captcha['filename']);
+		$this->assertEquals(1, preg_match('#src="data:image/png;base64,([A-Za-z0-9+/=]+)"#', $captcha['image'], $match));
+		$this->assertSame("\x89PNG", substr(base64_decode($match[1]), 0, 4));
+
+		$this->assertFalse(create_captcha(array('word' => 'test', 'img_url' => 'http://example.com/captcha/')));
+	}
+
+	// --------------------------------------------------------------------
+
 	private function _create_captcha(array $data = array())
 	{
 		return create_captcha(array_merge(array(
