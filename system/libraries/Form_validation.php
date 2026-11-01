@@ -587,8 +587,6 @@ class CI_Form_validation {
 	/**
 	 * Re-populate the _POST array with our finalized and processed data
 	 *
-	 * Arrays require bracket notation or an explicit is_array rule.
-	 *
 	 * @return	void
 	 */
 	protected function _reset_data_array(&$data)

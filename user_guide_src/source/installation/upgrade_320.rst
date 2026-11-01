@@ -276,3 +276,20 @@ Step 16: Replace config/user_agents.php and config/mimes.php
 
 These config files have received some updates. Please copy them to
 *application/config/user_agents.php* and *application/config/mimes.php*.
+
+Step 17: Check form validation rules for array fields
+=====================================================
+
+This only affects form fields that receive arrays. If you don't validate
+array input, you can skip this step.
+
+If you are upgrading from 3.1.x, check validation rules for field names
+without brackets, such as ``tags``. Submitted arrays are now set to
+``NULL`` in ``$_POST`` after a successful ``run()``; 3.1.x kept them in
+``$_POST``. Add ``is_array`` to accept and keep the array, or use ``tags[]``
+to validate each element.
+
+If you are upgrading from 3.2-dev, check rules that include ``is_array``
+for bracketed field names such as ``items[]``. Rules and callbacks now
+receive the whole array; previously only the first element was validated
+and passed to callbacks. See :ref:`using-arrays-as-field-names`.
