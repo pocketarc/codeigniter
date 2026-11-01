@@ -293,3 +293,16 @@ If you are upgrading from 3.2-dev, check rules that include ``is_array``
 for bracketed field names such as ``items[]``. Rules and callbacks now
 receive the whole array; previously only the first element was validated
 and passed to callbacks. See :ref:`using-arrays-as-field-names`.
+
+Step 18: Check full-page caching with a custom cache_path
+=========================================================
+
+If you set ``$config['cache_path']`` without a trailing slash, such as
+``/var/cache/ci``, cached pages are now served. Previously, cache files
+were written but never read. This does not affect configurations where
+``cache_path`` is empty or already ends with a slash.
+
+Before upgrading, check that pages calling ``$this->output->cache()`` do
+not include per-user content, such as account details or CSRF tokens.
+Cached output can be served to other visitors. See
+:doc:`Web Page Caching <../general/caching>`.
