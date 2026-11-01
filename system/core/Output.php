@@ -660,7 +660,8 @@ class CI_Output {
 	 */
 	public function _display_cache(&$CFG, &$URI)
 	{
-		$cache_path = ($CFG->item('cache_path') === '') ? APPPATH.'cache/' : $CFG->item('cache_path');
+		$path = $CFG->item('cache_path');
+		$cache_path = ($path === '') ? APPPATH.'cache'.DIRECTORY_SEPARATOR : rtrim($path, '/\\').DIRECTORY_SEPARATOR;
 
 		// Build the file path. The file name is an MD5 hash of the full URI
 		$uri = $CFG->item('base_url').$CFG->slash_item('index_page').$URI->uri_string;
@@ -737,11 +738,8 @@ class CI_Output {
 	public function delete_cache($uri = '')
 	{
 		$CI =& get_instance();
-		$cache_path = $CI->config->item('cache_path');
-		if ($cache_path === '')
-		{
-			$cache_path = APPPATH.'cache/';
-		}
+		$path = $CI->config->item('cache_path');
+		$cache_path = ($path === '') ? APPPATH.'cache'.DIRECTORY_SEPARATOR : rtrim($path, '/\\').DIRECTORY_SEPARATOR;
 
 		if ( ! is_dir($cache_path))
 		{
