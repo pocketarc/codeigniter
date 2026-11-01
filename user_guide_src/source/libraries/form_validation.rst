@@ -957,6 +957,21 @@ When you use a helper function you'll include the bracket as well::
 
 	<?php echo form_error('options[color][]'); ?>
 
+Without the ``is_array`` rule, rules for bracketed field names run once
+per array element. With ``is_array``, every rule in the list, including
+callbacks and callables, receives the whole array instead. This applies
+to field names with or without brackets, such as ``tags``, ``tags[]``
+and ``user[roles]``::
+
+	$this->form_validation->set_rules('tags', 'Tags', 'required|is_array');
+
+The ``required`` rule combined with ``is_array`` rejects an empty array.
+
+For field names without brackets, array input is otherwise treated as an
+empty value. After a successful ``run()``, that value is set to ``NULL``
+in ``$_POST``, or in the output variable passed as the second parameter
+to ``run()``. Adding ``is_array`` accepts and keeps the array.
+
 
 **************
 Rule Reference
@@ -969,6 +984,8 @@ use:
 Rule                      Parameter  Description                                                                                   Example
 ========================= ========== ============================================================================================= =======================
 **required**              No         Returns FALSE if the form element is empty.
+**is_array**              No         Returns FALSE if the form element is not an array.
+                                     See :ref:`using-arrays-as-field-names` for details on validating entire arrays.
 **matches**               Yes        Returns FALSE if the form element does not match the one in the parameter.                    matches[form_item]
 **regex_match**           Yes        Returns FALSE if the form element does not match the regular expression.                      regex_match[/regex/]
 **differs**               Yes        Returns FALSE if the form element does not differ from the one in the parameter.              differs[form_item]
@@ -1009,8 +1026,8 @@ Rule                      Parameter  Description                                
 **valid_base64**          No         Returns FALSE if the supplied string contains anything other than valid Base64 characters.
 ========================= ========== ============================================================================================= =======================
 
-.. note:: These rules can also be called as discrete methods. For
-	example::
+.. note:: These rules can also be called as discrete methods, except for
+	``is_array``, which is a native PHP function. For example::
 
 		$this->form_validation->required($string);
 

@@ -134,15 +134,17 @@ class CI_Session_redis_driver extends CI_Session_driver implements CI_Session_dr
 		{
 			log_message('error', 'Session: No Redis save path configured.');
 		}
-		elseif (preg_match('#^unix://([^\?]+)(?<options>\?.+)?$#', $this->_config['save_path'], $matches))
+		elseif (preg_match('#^unix://([^\?]+)(?<options>\?.+)?$#i', $this->_config['save_path'], $matches))
 		{
 			$save_path = array('path' => $matches[1]);
 		}
-		elseif (preg_match('#^(?:(tcp|tls|ssl)://)?([^:?]+)(?:\:(\d+))?(?<options>\?.+)?#', $this->_config['save_path'], $matches))
+		elseif (preg_match('#^(?:(tcp|tls|ssl)://)?([^:?]+)(?:\:(\d+))?(?<options>\?.+)?#i', $this->_config['save_path'], $matches))
 		{
+			$scheme = strtolower($matches[1]);
+
 			// phpredis needs the tls:// or ssl:// scheme in the host to enable encryption; tcp:// is the default
 			$save_path = array(
-				'host'    => (in_array($matches[1], array('tls', 'ssl'), TRUE) ? $matches[1].'://' : '').$matches[2],
+				'host'    => (in_array($scheme, array('tls', 'ssl'), TRUE) ? $scheme.'://' : '').$matches[2],
 				'port'    => empty($matches[3]) ? NULL : $matches[3],
 				'timeout' => 0.0 // We always pass this to Redis::connect(), so it needs to exist
 			);

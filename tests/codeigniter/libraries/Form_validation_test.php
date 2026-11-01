@@ -642,6 +642,104 @@ class Form_validation_test extends CI_TestCase {
 		$_POST = array();
 	}
 
+	public function test_set_rules_null_label_uses_field_name()
+	{
+		$_POST = array('email' => '');
+		$this->form_validation->set_message('required', 'The {field} field is required.');
+		$this->form_validation->set_rules('email', NULL, 'required');
+
+		$this->assertFalse($this->form_validation->run());
+		$this->assertEquals('<p>The email field is required.</p>', $this->form_validation->error('email'));
+
+		$_POST = array();
+	}
+
+	public function test_is_array_rule_on_bracket_field()
+	{
+		$_POST = array('tags' => array('a', 'b'));
+		$this->form_validation->set_rules('tags[]', 'Tags', 'required|is_array');
+		$this->assertTrue($this->form_validation->run());
+
+		$this->form_validation->reset_validation();
+		$this->form_validation->set_data(array('tags' => array()));
+		$this->form_validation->set_rules('tags[]', 'Tags', 'required|is_array');
+		$this->assertFalse($this->form_validation->run());
+
+		$_POST = array();
+	}
+
+	public function test_is_array_rule_on_bracket_field_passes_whole_array_to_callable()
+	{
+		$seen = NULL;
+		$_POST = array('tags' => array('a', 'b'));
+		$this->form_validation->set_rules('tags[]', 'Tags', array(
+			'is_array',
+			array('capture', function ($value) use (&$seen) {
+				$seen = $value;
+				return TRUE;
+			})
+		));
+
+		$this->assertTrue($this->form_validation->run());
+		$this->assertEquals(array('a', 'b'), $seen);
+
+		$_POST = array();
+	}
+
+	public function test_is_array_rule_on_keyed_field()
+	{
+		$_POST = array('user' => array('roles' => array('admin', 'editor')));
+		$this->form_validation->set_rules('user[roles]', 'Roles', 'required|is_array');
+
+		$this->assertTrue($this->form_validation->run());
+		$this->assertEquals(array('admin', 'editor'), $_POST['user']['roles']);
+
+		$_POST = array();
+	}
+
+	public function test_is_array_rule_keeps_array_after_run()
+	{
+		$_POST = array('tags' => array('a', 'b'));
+		$this->form_validation->set_rules('tags', 'Tags', 'required|is_array');
+
+		$this->assertTrue($this->form_validation->run());
+		$this->assertEquals(array('a', 'b'), $_POST['tags']);
+
+		$this->form_validation->reset_validation();
+		$this->form_validation->set_data(array('tags' => array('a', 'b')));
+		$this->form_validation->set_rules('tags', 'Tags', 'is_array');
+		$data_processed = NULL;
+
+		$this->assertTrue($this->form_validation->run('', $data_processed));
+		$this->assertEquals(array('a', 'b'), $data_processed['tags']);
+
+		$_POST = array();
+	}
+
+	public function test_array_input_without_is_array_rule()
+	{
+		$_POST = array('name' => array('x'), 'other' => 'y');
+		$this->form_validation->set_rules('name', 'Name', 'alpha');
+		$this->form_validation->set_rules('other', 'Other', 'required');
+
+		$this->assertTrue($this->form_validation->run());
+		$this->assertNull($_POST['name']);
+
+		$this->assertFalse($this->run_rules(
+			array(array('field' => 'ids[]', 'label' => 'IDs', 'rules' => 'numeric')),
+			array('ids' => array('1', 'x'))
+		));
+
+		$this->form_validation->reset_validation();
+		$_POST = array('names' => array(' a ', ' b '));
+		$this->form_validation->set_rules('names[]', 'Names', 'trim|required');
+
+		$this->assertTrue($this->form_validation->run());
+		$this->assertEquals(array('a', 'b'), $_POST['names']);
+
+		$_POST = array();
+	}
+
 	/**
 	 * Run rules
 	 *

@@ -270,3 +270,62 @@ entries by key needs review.
 .. note:: In 3.2-dev, this function was broken and returned entries holding
 	only a ``relative_path`` key, so there is nothing to migrate if you are
 	coming from there.
+
+Step 16: Replace config/user_agents.php and config/mimes.php
+============================================================
+
+These config files have received some updates. Please copy them to
+*application/config/user_agents.php* and *application/config/mimes.php*.
+
+Step 17: Check form validation rules for array fields
+=====================================================
+
+This only affects form fields that receive arrays. If you don't validate
+array input, you can skip this step.
+
+If you are upgrading from 3.1.x, check validation rules for field names
+without brackets, such as ``tags``. Submitted arrays are now set to
+``NULL`` in ``$_POST`` after a successful ``run()``; 3.1.x kept them in
+``$_POST``. Add ``is_array`` to accept and keep the array, or use ``tags[]``
+to validate each element.
+
+If you are upgrading from 3.2-dev, check rules that include ``is_array``
+for bracketed field names such as ``items[]``. Rules and callbacks now
+receive the whole array; previously only the first element was validated
+and passed to callbacks. See :ref:`using-arrays-as-field-names`.
+
+Step 18: Check full-page caching with a custom cache_path
+=========================================================
+
+If you set ``$config['cache_path']`` without a trailing slash, such as
+``/var/cache/ci``, cached pages are now served. Previously, cache files
+were written but never read. This does not affect configurations where
+``cache_path`` is empty or already ends with a slash.
+
+Before upgrading, check that pages calling ``$this->output->cache()`` do
+not include per-user content, such as account details or CSRF tokens.
+Cached output can be served to other visitors. See
+:doc:`Web Page Caching <../general/caching>`.
+
+Step 19: Check CAPTCHA image handling
+=====================================
+
+The :doc:`CAPTCHA Helper <../helpers/captcha_helper>` function
+:php:func:`create_captcha()` now correctly removes expired images from
+``img_path`` when it runs. It matches filenames consisting of a 10-digit
+timestamp with an optional fractional part (``.`` or ``,`` separator),
+followed by ``.png`` or ``.jpg`` (case-insensitive). Keep ``img_path``
+dedicated to CAPTCHA images: any matching file is deleted after
+``expiration`` seconds (default 7200). Other files are left alone.
+
+If you are upgrading from 3.1.x, check code that assumes JPEG output.
+Since 3.2-dev, ``create_captcha()`` always writes PNG files; 3.1.x used
+JPEG when ``imagejpeg()`` was available. Replace filenames built from
+``$cap['time']`` plus ``.jpg`` with the returned ``$cap['filename']``,
+which contains the exact filename (``$cap['time']`` plus ``.png``).
+
+Omitting both ``img_path`` and ``img_url`` returns the image inline as a
+``data:image/png;base64,...`` URI again, as described in the CAPTCHA helper
+documentation. This mode was added in 3.2-dev in 2017, but a 2020 merge
+accidentally disabled it, causing ``create_captcha()`` to return ``FALSE``
+instead.

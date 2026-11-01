@@ -558,8 +558,7 @@ class CI_Output {
 	public function _write_cache($output)
 	{
 		$CI =& get_instance();
-		$path = $CI->config->item('cache_path');
-		$cache_path = ($path === '') ? APPPATH.'cache'.DIRECTORY_SEPARATOR : rtrim($path, '/\\').DIRECTORY_SEPARATOR;
+		$cache_path = $this->_get_cache_path($CI->config->item('cache_path'));
 
 		if ( ! is_dir($cache_path) OR ! is_really_writable($cache_path))
 		{
@@ -660,8 +659,7 @@ class CI_Output {
 	 */
 	public function _display_cache(&$CFG, &$URI)
 	{
-		$path = $CFG->item('cache_path');
-		$cache_path = ($path === '') ? APPPATH.'cache'.DIRECTORY_SEPARATOR : rtrim($path, '/\\').DIRECTORY_SEPARATOR;
+		$cache_path = $this->_get_cache_path($CFG->item('cache_path'));
 
 		// Build the file path. The file name is an MD5 hash of the full URI
 		$uri = $CFG->item('base_url').$CFG->slash_item('index_page').$URI->uri_string;
@@ -738,8 +736,7 @@ class CI_Output {
 	public function delete_cache($uri = '')
 	{
 		$CI =& get_instance();
-		$path = $CI->config->item('cache_path');
-		$cache_path = ($path === '') ? APPPATH.'cache'.DIRECTORY_SEPARATOR : rtrim($path, '/\\').DIRECTORY_SEPARATOR;
+		$cache_path = $this->_get_cache_path($CI->config->item('cache_path'));
 
 		if ( ! is_dir($cache_path))
 		{
@@ -773,6 +770,19 @@ class CI_Output {
 		}
 
 		return TRUE;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Get cache path
+	 *
+	 * @param	string	$path	The configured cache_path value
+	 * @return	string	Cache directory path with a trailing directory separator
+	 */
+	protected function _get_cache_path($path)
+	{
+		return empty($path) ? APPPATH.'cache'.DIRECTORY_SEPARATOR : rtrim($path, '/\\').DIRECTORY_SEPARATOR;
 	}
 
 	// --------------------------------------------------------------------

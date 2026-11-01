@@ -142,4 +142,11 @@ class UserAgent_test extends CI_TestCase {
 		$this->assertEquals('Edge', $this->agent->browser());
 	}
 
+	public function test_vivaldi()
+	{
+		$this->agent->parse('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Vivaldi/6.5.3206.48');
+		$this->assertEquals('Vivaldi', $this->agent->browser());
+		$this->assertEquals('6.5.3206.48', $this->agent->version());
+	}
+
 }

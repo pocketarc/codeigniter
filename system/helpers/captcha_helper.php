@@ -133,8 +133,7 @@ if ( ! function_exists('create_captcha'))
 			@closedir($current_dir);
 
 			// This variable will later be used later to determine whether we write to disk or output a data:image URI
-			// %F is locale-independent, unlike float-to-string conversion on PHP < 8.0
-			$img_filename = sprintf('%.6F', $now).'.png';
+			$img_filename = $now.'.png';
 		}
 		else
 		{
@@ -346,20 +345,9 @@ if ( ! function_exists('create_captcha'))
 		}
 		else
 		{
-			// I don't see an easier way to get the image contents without writing to file
-			$buffer = fopen('php://memory', 'wb+');
-			imagepng($im, $buffer);
-			rewind($buffer);
-			$img_src = '';
-
-			// fread() will return an empty string (not FALSE) after the entire contents are read
-			while (strlen($read = fread($buffer, 4096)))
-			{
-				$img_src .= $read;
-			}
-
-			fclose($buffer);
-			$img_src = 'data:image/png;base64,'.base64_encode($img_src);
+			ob_start();
+			imagepng($im);
+			$img_src = 'data:image/png;base64,'.base64_encode(ob_get_clean());
 		}
 
 		$img_class = trim($img_class);

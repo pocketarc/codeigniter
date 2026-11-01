@@ -60,4 +60,35 @@ HTML;
 		);
 	}
 
+	// --------------------------------------------------------------------
+
+	public function test_delete_cache_without_trailing_slash()
+	{
+		$this->ci_set_config('cache_path', APPPATH.'pagecache');
+		$this->ci_set_config('base_url', 'http://example.com/');
+		$this->ci_set_config('index_page', 'index.php');
+
+		$cache_file = md5('http://example.com/index.php/foo');
+		$dir = $this->ci_vfs_mkdir('pagecache', $this->ci_app_root);
+		vfsStream::newFile($cache_file)->at($dir)->setContent('cached');
+
+		$this->assertTrue($this->output->delete_cache('foo'));
+		$this->assertFalse($dir->hasChild($cache_file));
+	}
+
+	// --------------------------------------------------------------------
+
+	public function test_delete_cache_without_cache_path()
+	{
+		$this->ci_set_config('base_url', 'http://example.com/');
+		$this->ci_set_config('index_page', 'index.php');
+
+		$cache_file = md5('http://example.com/index.php/foo');
+		$dir = $this->ci_vfs_mkdir('cache', $this->ci_app_root);
+		vfsStream::newFile($cache_file)->at($dir)->setContent('cached');
+
+		$this->assertTrue($this->output->delete_cache('foo'));
+		$this->assertFalse($dir->hasChild($cache_file));
+	}
+
 }
