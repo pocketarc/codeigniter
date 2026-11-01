@@ -291,7 +291,7 @@ class CI_Loader {
 				$db_conn = '';
 			}
 
-			$this->database($db_conn, FALSE, TRUE);
+			$this->database($db_conn);
 		}
 
 		// Note: All of the code under this condition used to be just:
