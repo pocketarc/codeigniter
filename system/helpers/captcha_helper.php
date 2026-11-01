@@ -345,20 +345,9 @@ if ( ! function_exists('create_captcha'))
 		}
 		else
 		{
-			// I don't see an easier way to get the image contents without writing to file
-			$buffer = fopen('php://memory', 'wb+');
-			imagepng($im, $buffer);
-			rewind($buffer);
-			$img_src = '';
-
-			// fread() will return an empty string (not FALSE) after the entire contents are read
-			while (strlen($read = fread($buffer, 4096)))
-			{
-				$img_src .= $read;
-			}
-
-			fclose($buffer);
-			$img_src = 'data:image/png;base64,'.base64_encode($img_src);
+			ob_start();
+			imagepng($im);
+			$img_src = 'data:image/png;base64,'.base64_encode(ob_get_clean());
 		}
 
 		$img_class = trim($img_class);
