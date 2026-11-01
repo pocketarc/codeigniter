@@ -306,3 +306,20 @@ Before upgrading, check that pages calling ``$this->output->cache()`` do
 not include per-user content, such as account details or CSRF tokens.
 Cached output can be served to other visitors. See
 :doc:`Web Page Caching <../general/caching>`.
+
+Step 19: Check CAPTCHA image handling
+=====================================
+
+The :doc:`CAPTCHA Helper <../helpers/captcha_helper>` function
+:php:func:`create_captcha()` now correctly removes expired images from
+``img_path`` when it runs. It matches filenames consisting of a 10-digit
+timestamp with an optional fractional part (``.`` or ``,`` separator),
+followed by ``.png`` or ``.jpg`` (case-insensitive). Keep ``img_path``
+dedicated to CAPTCHA images: any matching file is deleted after
+``expiration`` seconds (default 7200). Other files are left alone.
+
+If you are upgrading from 3.1.x, check code that assumes JPEG output.
+Since 3.2-dev, ``create_captcha()`` always writes PNG files; 3.1.x used
+JPEG when ``imagejpeg()`` was available. Replace filenames built from
+``$cap['time']`` plus ``.jpg`` with the returned ``$cap['filename']``,
+which contains the exact filename (``$cap['time']`` plus ``.png``).

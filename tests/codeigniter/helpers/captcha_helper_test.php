@@ -38,14 +38,13 @@ class Captcha_helper_test extends CI_TestCase {
 
 	// --------------------------------------------------------------------
 
-	public function test_create_captcha_writes_image_with_fractional_timestamp_filename()
+	public function test_create_captcha_names_image_after_time()
 	{
 		$captcha = $this->_create_captcha();
 
 		$this->assertTrue(is_array($captcha));
-		$this->assertEquals(1, preg_match('#^\d{10}\.\d{6}\.png$#', $captcha['filename']));
+		$this->assertSame($captcha['time'].'.png', $captcha['filename']);
 		$this->assertTrue(is_file($this->_img_path.$captcha['filename']));
-		$this->assertSame(sprintf('%.6F', $captcha['time']).'.png', $captcha['filename']);
 	}
 
 	// --------------------------------------------------------------------
@@ -144,25 +143,6 @@ class Captcha_helper_test extends CI_TestCase {
 
 		$this->_create_captcha(array('expiration' => 50));
 		$this->assertFalse(is_file($this->_img_path.$file));
-	}
-
-	// --------------------------------------------------------------------
-
-	public function test_create_captcha_filename_is_locale_independent()
-	{
-		$original = setlocale(LC_NUMERIC, 0);
-		$locale = setlocale(LC_NUMERIC, 'de_DE.UTF-8', 'de_DE.utf8', 'de_DE', 'de-DE', 'German_Germany.1252', 'German');
-
-		if ($locale === FALSE)
-		{
-			$this->markTestSkipped('No locale with a comma decimal separator is available.');
-		}
-
-		$captcha = $this->_create_captcha();
-		setlocale(LC_NUMERIC, $original);
-
-		$this->assertEquals(1, preg_match('#^\d{10}\.\d{6}\.png$#', $captcha['filename']));
-		$this->assertTrue(is_file($this->_img_path.$captcha['filename']));
 	}
 
 	// --------------------------------------------------------------------

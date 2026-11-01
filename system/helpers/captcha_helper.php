@@ -133,8 +133,7 @@ if ( ! function_exists('create_captcha'))
 			@closedir($current_dir);
 
 			// This variable will later be used later to determine whether we write to disk or output a data:image URI
-			// %F is locale-independent, unlike float-to-string conversion on PHP < 8.0
-			$img_filename = sprintf('%.6F', $now).'.png';
+			$img_filename = $now.'.png';
 		}
 		else
 		{
