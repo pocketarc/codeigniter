@@ -317,11 +317,10 @@ Class Reference
 			$this->load->model('model_name', 'fubar');
 			$this->fubar->method();
 
-	.. php:method:: database([$params = ''[, $return = FALSE[, $query_builder = NULL]]])
+	.. php:method:: database([$params = ''[, $return = FALSE]])
 
 		:param	mixed	$params: Database group name or configuration options
 		:param	bool	$return: Whether to return the loaded database object
-		:param	bool	$query_builder: Whether to load the Query Builder
 		:returns:	Loaded CI_DB instance or FALSE on failure if $return is set to TRUE, otherwise CI_Loader instance (method chaining)
 		:rtype:	mixed
 
