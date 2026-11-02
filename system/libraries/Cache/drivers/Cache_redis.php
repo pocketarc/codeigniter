@@ -157,7 +157,8 @@ class CI_Cache_redis extends CI_Driver
 	 * Get cache
 	 *
 	 * @param	string	$key	Cache ID
-	 * @return	mixed	Cached value or NULL (FALSE cached by 3.1.x) if the key does not exist or NULL if settype() fails
+	 * @return	mixed	Cached value, NULL for a missing key, unsupported type or failed conversion;
+	 *			FALSE if unserialization fails or the legacy Redis GET fallback returns FALSE
 	 * @throws	ValueError	If settype() is given an invalid type (PHP 8+)
 	 */
 	public function get($key)
