@@ -157,7 +157,8 @@ class CI_Cache_redis extends CI_Driver
 	 * Get cache
 	 *
 	 * @param	string	$key	Cache ID
-	 * @return	mixed	Cached value or NULL if the key does not exist
+	 * @return	mixed	Cached value or NULL if the key does not exist or settype() fails
+	 * @throws	ValueError	If settype() is given an invalid type (PHP 8+)
 	 */
 	public function get($key)
 	{
@@ -166,12 +167,6 @@ class CI_Cache_redis extends CI_Driver
 		if ($data === FALSE)
 		{
 			return $this->_get_v31($key);
-		}
-
-		// hMGet() returns FALSE for every field when the key does not exist
-		if ($data['__ci_type'] === FALSE)
-		{
-			return NULL;
 		}
 
 		switch ($data['__ci_type'])
@@ -186,10 +181,10 @@ class CI_Cache_redis extends CI_Driver
 			case 'NULL':
 				return settype($data['__ci_value'], $data['__ci_type'])
 					? $data['__ci_value']
-					: FALSE;
+					: NULL;
 			case 'resource':
 			default:
-				return FALSE;
+				return NULL;
 		}
 	}
 
