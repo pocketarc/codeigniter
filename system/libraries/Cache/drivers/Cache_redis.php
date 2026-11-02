@@ -157,7 +157,7 @@ class CI_Cache_redis extends CI_Driver
 	 * Get cache
 	 *
 	 * @param	string	$key	Cache ID
-	 * @return	mixed
+	 * @return	mixed	Cached value or NULL if the key does not exist
 	 */
 	public function get($key)
 	{
@@ -166,6 +166,12 @@ class CI_Cache_redis extends CI_Driver
 		if ($data === FALSE)
 		{
 			return $this->_get_v31($key);
+		}
+
+		// hMGet() returns FALSE for every field when the key does not exist
+		if ($data['__ci_type'] === FALSE)
+		{
+			return NULL;
 		}
 
 		switch ($data['__ci_type'])
