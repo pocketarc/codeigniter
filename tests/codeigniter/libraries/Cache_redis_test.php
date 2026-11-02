@@ -64,12 +64,35 @@ class Cache_redis_test extends CI_TestCase {
 		$this->assertSame('string', $this->redis->hashes['data']['__ci_type']);
 	}
 
+	// --------------------------------------------------------------------
+
+	public function test_get_value_cached_by_31x()
+	{
+		$this->redis->strings['plain'] = 'bar';
+		$this->redis->strings['list'] = serialize(array('a' => 1));
+		$this->redis->serialized[] = 'list';
+
+		$this->assertSame('bar', $this->cache->get('plain'));
+		$this->assertSame(array('a' => 1), $this->cache->get('list'));
+	}
+
+	// --------------------------------------------------------------------
+
+	public function test_get_counter_named_in_stale_serialized_set()
+	{
+		$this->redis->serialized[] = 'hits';
+
+		$this->assertSame(5, $this->cache->increment('hits', 5));
+		$this->assertEquals(5, $this->cache->get('hits'));
+	}
+
 }
 
 class Cache_redis_server_stub {
 
 	public $strings = array();
 	public $hashes = array();
+	public $serialized = array();
 
 	public function incrBy($key, $offset)
 	{
@@ -134,7 +157,7 @@ class Cache_redis_server_stub {
 
 	public function sIsMember($key, $member)
 	{
-		return FALSE;
+		return $key === '_ci_redis_serialized' && in_array($member, $this->serialized, TRUE);
 	}
 
 	public function close()
