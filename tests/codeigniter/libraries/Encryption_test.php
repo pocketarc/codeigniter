@@ -249,6 +249,44 @@ class Encryption_test extends CI_TestCase {
 	// --------------------------------------------------------------------
 
 	/**
+	 * @depends	test__get_params
+	 */
+	public function test_encrypt_decrypt_null()
+	{
+		$this->encryption->initialize(array('key' => str_repeat("\x1", 16)));
+
+		$notices = array();
+		set_error_handler(function ($severity, $message) use (&$notices) {
+			$notices[] = $message;
+			return TRUE;
+		});
+
+		$ciphertext = $this->encryption->encrypt(NULL);
+		$plaintext = $this->encryption->decrypt($ciphertext);
+		$null_plaintext = $this->encryption->decrypt(NULL);
+
+		$binary_params = array(
+			'cipher' => 'aes-128',
+			'mode' => 'cbc',
+			'key' => str_repeat("\x1", 16),
+			'hmac' => FALSE
+		);
+		$binary_ciphertext = $this->encryption->encrypt(NULL, $binary_params);
+		$binary_plaintext = $this->encryption->decrypt($binary_ciphertext, $binary_params);
+		$binary_null_plaintext = $this->encryption->decrypt(NULL, $binary_params);
+
+		restore_error_handler();
+
+		$this->assertSame(array(), $notices);
+		$this->assertSame('', $plaintext);
+		$this->assertFalse($null_plaintext);
+		$this->assertSame('', $binary_plaintext);
+		$this->assertFalse($binary_null_plaintext);
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
 	 * _mcrypt_get_handle() test
 	 */
 	public function test__mcrypt_get_handle()
