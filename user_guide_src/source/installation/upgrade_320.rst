@@ -122,6 +122,15 @@ The ``$config['socket_type']`` option is also removed, although that won't
 affect your application - it will be ignored and the connection type will
 be determined by the format used for ``$config['host']`` instead.
 
+Since 3.2.0, the 'redis' driver's ``get()`` returns cached values with their
+original PHP types. In 3.1.x, scalars were returned as strings: ``FALSE``
+and ``NULL`` became ``''``, and ``123`` became ``'123'``. Update code that
+compares ``get()`` results with strings to use the original value's type.
+
+A cached ``FALSE`` is now indistinguishable from a missing key: both return
+``FALSE``, as with the other cache drivers. If you need to distinguish
+them, cache a different value instead.
+
 Memcache(d)
 -----------
 
@@ -222,7 +231,7 @@ That shouldn't be a problem, but you may want to clear them.
 Step 13: Remove usage of OCI8 get_cursor() and stored_procedure() methods
 =========================================================================
 
-The OCI8 :doc:`Database <database/index>` driver no longer has these two
+The OCI8 :doc:`Database <../database/index>` driver no longer has these two
 methods that were specific to it and not present in other database drivers.
 The ``$curs_id`` property is also removed.
 
