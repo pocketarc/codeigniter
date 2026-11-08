@@ -122,36 +122,14 @@ The ``$config['socket_type']`` option is also removed, although that won't
 affect your application - it will be ignored and the connection type will
 be determined by the format used for ``$config['host']`` instead.
 
-If you're using the 'redis' driver, check code that reads cached values.
-Since 3.2.0, ``save()`` stores each value together with its PHP type, so
-``get()`` returns values with their original types. In 3.1.x, all scalar
-values were returned as strings.
+Since 3.2.0, the 'redis' driver's ``get()`` returns cached values with their
+original PHP types. In 3.1.x, scalars were returned as strings: ``FALSE``
+and ``NULL`` became ``''``, and ``123`` became ``'123'``. Update code that
+compares ``get()`` results with strings to use the original value's type.
 
-When calling ``get()`` after ``save()``, the results differ as follows:
-
-- A cached ``FALSE`` returned ``''`` (an empty string) in 3.1.x, but returns
-  ``FALSE`` in 3.2+.
-- A cached ``NULL`` returned ``''`` in 3.1.x, but returns ``NULL`` in 3.2+.
-- A cached ``TRUE`` returned ``'1'`` in 3.1.x, but returns ``TRUE`` in 3.2+.
-- A cached integer such as ``123`` returned ``'123'`` in 3.1.x, but returns
-  ``123`` in 3.2+. Floats also retain their type.
-
-A missing key still returns ``FALSE`` in both versions, as documented in
-the :doc:`Cache Library <../libraries/caching>`.
-
-In 3.1.x, you could distinguish a cached ``FALSE`` from a missing key
-because the cached value returned ``''``. In 3.2+, both return ``FALSE``,
-as with every other cache driver. If your application caches ``FALSE``
-and needs to distinguish it from a missing key, cache a different value
-instead, such as ``0`` or an array that wraps the value.
-
-Update code that compares ``get()`` results with strings, such as
-``=== '123'`` or ``=== ''``, to use the original value's type.
-
-Values cached by 3.1.x as plain Redis strings are still read correctly
-after upgrading, and counters created by ``increment()``/``decrement()``
-remain plain Redis strings, so ``get()`` returns those counters as numeric
-strings.
+A cached ``FALSE`` is now indistinguishable from a missing key: both return
+``FALSE``, as with the other cache drivers. If you need to distinguish
+them, cache a different value instead.
 
 Memcache(d)
 -----------
