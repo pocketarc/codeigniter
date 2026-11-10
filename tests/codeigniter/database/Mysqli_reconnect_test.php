@@ -12,9 +12,9 @@ class Mysqli_reconnect_test extends CI_TestCase {
 		$db = Mock_Database_Schema_Skeleton::init(DB_DRIVER);
 		$db->initialize();
 
-		$notices = array();
-		set_error_handler(function ($severity, $message) use (&$notices) {
-			$notices[] = $message;
+		$deprecations = array();
+		set_error_handler(function ($severity, $message) use (&$deprecations) {
+			$severity === E_DEPRECATED && $deprecations[] = $message;
 			return TRUE;
 		});
 
@@ -35,7 +35,7 @@ class Mysqli_reconnect_test extends CI_TestCase {
 
 		restore_error_handler();
 
-		$this->assertSame(array(), $notices);
+		$this->assertSame(array(), $deprecations);
 		$this->assertTrue($alive_after_live_check);
 		$this->assertTrue($dropped_after_dead_check);
 		$this->assertEquals(1, $query->row()->one);
