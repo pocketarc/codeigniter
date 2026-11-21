@@ -306,7 +306,8 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 	 */
 	public function updateTimestamp($id, $unknown)
 	{
-		return $this->_memcached->touch($this->_key_prefix.$id, $this->_config['expiration']);
+		// PHP 8.6+ calls this instead of write() for a new session that is still empty.
+		return $this->write($id, $unknown);
 	}
 
 	// --------------------------------------------------------------------
