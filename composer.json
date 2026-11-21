@@ -1,5 +1,5 @@
 {
-	"description": "Actively maintained CodeIgniter 3 fork with support for PHP 5.4 - PHP 8.6 (and beyond). Fully backward compatible.",
+	"description": "Actively maintained CodeIgniter 3 fork with support for PHP 5.4 - PHP 8.7 (and beyond). Fully backward compatible.",
 	"name": "pocketarc/codeigniter",
 	"type": "project",
 	"homepage": "https://github.com/pocketarc/codeigniter",
