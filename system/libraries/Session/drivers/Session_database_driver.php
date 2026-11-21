@@ -355,7 +355,10 @@ class CI_Session_database_driver extends CI_Session_driver implements CI_Session
 	 */
 	public function updateTimestamp($id, $unknown)
 	{
-		// PHP 8.6+ calls this instead of write() for a new session that is still empty.
+		// Before PHP 8.6, PHP called this only for sessions already in storage.
+		// From 8.6, it also calls this instead of write() for a new session that
+		// is still empty. When no record exists yet, this calls write(), because
+		// only write() creates one.
 		if ($this->_row_exists === FALSE OR $id !== $this->_session_id)
 		{
 			return $this->write($id, $unknown);

@@ -79,6 +79,20 @@ class Session_update_timestamp_test extends CI_TestCase {
 
 	// --------------------------------------------------------------------
 
+	public function test_redis_does_not_recreate_expired_session()
+	{
+		$redis = new Session_update_timestamp_redis_stub();
+		$redis->data['ci_session:'.$this->id] = 'foo|s:3:"bar";';
+		$driver = new Session_update_timestamp_redis_driver($this->params, $redis);
+
+		$this->assertSame('foo|s:3:"bar";', $driver->read($this->id));
+		$redis->del('ci_session:'.$this->id);
+		$this->assertFalse($driver->updateTimestamp($this->id, 'foo|s:3:"bar";'));
+		$this->assertSame(0, $redis->sets);
+	}
+
+	// --------------------------------------------------------------------
+
 	public function test_memcached_creates_new_empty_session()
 	{
 		if ( ! class_exists('Memcached', FALSE))
@@ -111,6 +125,25 @@ class Session_update_timestamp_test extends CI_TestCase {
 		$this->assertTrue($driver->updateTimestamp($this->id, 'foo|s:3:"bar";'));
 		$this->assertSame(0, $memcached->sets);
 		$this->assertSame(7200, $memcached->ttls['ci_session:'.$this->id]);
+	}
+
+	// --------------------------------------------------------------------
+
+	public function test_memcached_does_not_recreate_expired_session()
+	{
+		if ( ! class_exists('Memcached', FALSE))
+		{
+			$this->markTestSkipped('The Memcached extension is not available.');
+		}
+
+		$memcached = new Session_update_timestamp_memcached_stub();
+		$memcached->data['ci_session:'.$this->id] = 'foo|s:3:"bar";';
+		$driver = new Session_update_timestamp_memcached_driver($this->params, $memcached);
+
+		$this->assertSame('foo|s:3:"bar";', $driver->read($this->id));
+		$memcached->delete('ci_session:'.$this->id);
+		$this->assertFalse($driver->updateTimestamp($this->id, 'foo|s:3:"bar";'));
+		$this->assertSame(0, $memcached->sets);
 	}
 
 }

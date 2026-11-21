@@ -70,6 +70,13 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 	 */
 	protected $_lock_key;
 
+	/**
+	 * Key exists flag
+	 *
+	 * @var	bool
+	 */
+	protected $_key_exists = FALSE;
+
 	// ------------------------------------------------------------------------
 
 	/**
@@ -169,6 +176,7 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 			$this->_session_id = $session_id;
 
 			$session_data = (string) $this->_memcached->get($this->_key_prefix.$session_id);
+			$this->_key_exists = ($this->_memcached->getResultCode() === Memcached::RES_SUCCESS);
 			$this->_fingerprint = md5($session_data);
 			return $session_data;
 		}
@@ -202,6 +210,7 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 			}
 
 			$this->_fingerprint = md5('');
+			$this->_key_exists = FALSE;
 			$this->_session_id = $session_id;
 		}
 
@@ -213,6 +222,7 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 			if ($this->_memcached->set($key, $session_data, $this->_config['expiration']))
 			{
 				$this->_fingerprint = $fingerprint;
+				$this->_key_exists = TRUE;
 				return $this->_success;
 			}
 
@@ -223,6 +233,7 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 			OR ($this->_memcached->getResultCode() === Memcached::RES_NOTFOUND && $this->_memcached->set($key, $session_data, $this->_config['expiration']))
 		)
 		{
+			$this->_key_exists = TRUE;
 			return $this->_success;
 		}
 
@@ -306,8 +317,16 @@ class CI_Session_memcached_driver extends CI_Session_driver implements CI_Sessio
 	 */
 	public function updateTimestamp($id, $unknown)
 	{
-		// PHP 8.6+ calls this instead of write() for a new session that is still empty.
-		return $this->write($id, $unknown);
+		// Before PHP 8.6, PHP called this only for sessions already in storage.
+		// From 8.6, it also calls this instead of write() for a new session that
+		// is still empty. When no record exists yet, this calls write(), because
+		// only write() creates one.
+		if ($this->_key_exists === FALSE OR $id !== $this->_session_id)
+		{
+			return $this->write($id, $unknown);
+		}
+
+		return $this->_memcached->touch($this->_key_prefix.$id, $this->_config['expiration']);
 	}
 
 	// --------------------------------------------------------------------
