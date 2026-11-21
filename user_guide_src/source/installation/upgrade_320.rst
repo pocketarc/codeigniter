@@ -30,7 +30,8 @@ your *system/* directory.
 Step 2: Check your PHP version
 ==============================
 
-This fork supports PHP 5.4 through 8.5+. We recommend running a
+This fork supports PHP 5.4 through 8.6 and PHP 8.7 nightly.
+We recommend running a
 `currently supported <https://www.php.net/supported-versions.php>`_
 PHP version (8.4 or newer).
 
